@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gıda Kurtarma Platformu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .disabled-link {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 14px;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Tab Styles */
+    .tab-btn.active {
+      border-bottom: 2px solid #16a34a;
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .tab-btn {
+      color: #6b7280;
+      font-weight: 500;
+      padding-bottom: 8px;
+      transition: all 0.3s;
+    }
+
+    .tab-btn:hover {
+      color: #16a34a;
+    }
+  </style>
+</head>
+
+<body class="relative min-h-screen flex flex-col">
+
+  <!-- 🖼️ Arka plan -->
+  <div class="absolute inset-0 bg-cover bg-center brightness-75"
+    style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1950&q=80');">
+  </div>
+  <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/food.png')] opacity-25"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-green-100/70 via-yellow-50/50 to-white/60 backdrop-blur-[2px]">
+  </div>
+
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between bg-white/70 backdrop-blur-md shadow-md px-6 py-4">
+      <h1 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+        🍽️ <span>Yemek İsrafını Azaltma Platformu</span>
+      </h1>
+      <div class="flex items-center gap-4">
+        <div class="relative" id="notificationWrapper">
+          <div class="relative cursor-pointer group" id="notificationBtn" title="Bildirimler">
+            <span class="text-2xl group-hover:scale-110 transition-transform block">🔔</span>
+            <span id="notificationBadge"
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden shadow-sm animate-bounce">0</span>
+          </div>
+          <div id="notificationDropdown"
+            class="hidden absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 origin-top-right transition-all duration-200 transform opacity-0 scale-95">
+            <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+              <h3 class="font-bold text-gray-700 text-sm">Bildirimler</h3>
+              <button id="clearNotifications"
+                class="text-xs text-red-500 hover:text-red-700 font-medium hover:underline">Temizle</button>
+            </div>
+            <div id="notificationList" class="max-h-64 overflow-y-auto bg-white">
+              <div class="p-4 text-center text-gray-400 text-sm">Henüz bildirim yok</div>
+            </div>
+          </div>
+        </div>
+        <a href="admin_panel.html" id="adminBtn" class="relative cursor-pointer group" title="Admin Paneli">
+          <span class="text-2xl group-hover:scale-110 transition-transform block">👤</span>
+        </a>
+        <button id="openModal"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition">
+          Giriş Yap / Kayıt Ol
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana içerik -->
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-6 py-12">
+      <h2 class="text-4xl font-bold text-green-800 mb-4 drop-shadow-md">
+        Yemeğini Kurtar, İsrafı Bitir.
+      </h2>
+      <p
+        class="text-gray-100 bg-green-900/30 rounded-xl px-6 py-3 max-w-2xl mb-10 leading-relaxed backdrop-blur-sm shadow-md">
+        Çevrenizdeki işletmelerden artan taze yemekleri bulun veya artan yemeğinizi hızla sisteme ekleyin.
+      </p>
+
+      <div class="flex flex-wrap justify-center gap-6">
+
+        <div class="tooltip">
+          <a href="yemek_alanlar.html" id="btnYemekAlan"
+            class="disabled-link bg-yellow-400 hover:bg-yellow-500 text-white font-semibold text-lg px-10 py-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center no-underline">
+            <span>🍛 Yakınındaki yemekleri gör</span>
+            <span class="text-sm font-normal mt-1">Çevrendeki Yemekleri Keşfet</span>
+          </a>
+          <span class="tooltiptext">Lütfen önce giriş yapınız</span>
+        </div>
+
+        <div class="tooltip">
+          <a href="yemek_verenler.html" id="btnYemekVeren"
+            class="disabled-link bg-green-500 hover:bg-green-600 text-white font-semibold text-lg px-10 py-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center no-underline text-center">
+            <span>🥗 Yemek Paylaş</span>
+            <span class="text-sm font-normal mt-1">Artan Yemek Envanterini Ekle</span>
+          </a>
+          <span class="tooltiptext">Lütfen önce giriş yapınız</span>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900/90 text-gray-300 text-sm text-center py-4 backdrop-blur-md">
+      © 2025 Gıda Kurtarma Projesi |
+      <a href="hakkimizda.html" class="text-green-400 hover:underline">Hakkımızda</a> |
+      <a href="iletisim.html" class="text-green-400 hover:underline">İletişim</a>
+    </footer>
+  </div>
+
+  <!-- 🌟 Modal -->
+  <div id="loginModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white/90 rounded-2xl shadow-2xl w-11/12 max-w-md p-8 relative">
+      <button id="closeModal"
+        class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-xl font-bold">&times;</button>
+
+      <!-- Tabs -->
+      <div class="flex justify-center gap-8 mb-6 border-b border-gray-200">
+        <button class="tab-btn active" onclick="switchTab('login')">Giriş Yap</button>
+        <button class="tab-btn" onclick="switchTab('register')">Kayıt Ol</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="space-y-5" action="/login" method="POST">
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">E-posta</label>
+          <input type="email" name="email" id="loginEmail" placeholder="ornek@gmail.com" required
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400">
+        </div>
+
+        <!-- 🔐 Şifre alanı + SVG + Güçlülük göstergesi -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Şifre</label>
+          <div class="relative">
+            <input type="password" id="loginPassword" name="password" placeholder="Şifrenizi giriniz" required
+              class="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-green-400">
+            <button type="button" id="togglePassword"
+              class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-green-600">
+              <!-- Açık göz -->
+              <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <!-- Kapalı göz -->
+              <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5 hidden">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3.98 8.223C2.753 9.593 2.25 10.928 2.25 12c0 1.072.503 2.407 1.73 3.777C5.955 18.147 8.806 19.5 12 19.5s6.045-1.353 8.02-3.723C21.247 14.407 21.75 13.072 21.75 12c0-1.072-.503-2.407-1.73-3.777M3.98 8.223l16.04 7.554" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Role seçimi -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Rolünüzü Seçin</label>
+          <div class="flex gap-4">
+            <label class="flex items-center cursor-pointer">
+              <input type="radio" name="role" value="yemek_alan" required class="text-green-600 focus:ring-green-500">
+              <span class="ml-2">Yemek Al</span>
+            </label>
+            <label class="flex items-center cursor-pointer">
+              <input type="radio" name="role" value="yemek_veren" required class="text-green-600 focus:ring-green-500">
+              <span class="ml-2">Yemek Paylaş</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition shadow-md">
+          Giriş Yap
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="space-y-4 hidden" action="/register" method="POST">
+        <div>
+          <label class="block text-gray-700 text-sm font-medium mb-1">E-posta</label>
+          <input type="email" name="email" id="regEmail" required placeholder="ornek@gmail.com"
+                 class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+        </div>
+
+        <div>
+          <label class="block text-gray-700 text-sm font-medium mb-1">Şifre</label>
+          <input type="password" name="password" id="regPassword" required placeholder="Güçlü bir şifre oluşturun"
+                 class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+        </div>
+
+        <div>
+          <label class="block text-gray-700 text-sm font-medium mb-1">Rolünüzü Seçin</label>
+          <div class="flex gap-4">
+            <label class="flex items-center text-sm cursor-pointer">
+              <input type="radio" name="role" value="yemek_alan" required
+                class="text-green-600 focus:ring-green-500">
+              <span class="ml-2">Yemek Al</span>
+            </label>
+            <label class="flex items-center text-sm cursor-pointer">
+              <input type="radio" name="role" value="yemek_veren" required
+                class="text-green-600 focus:ring-green-500">
+              <span class="ml-2">Yemek Paylaş</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition shadow-md">
+          Kayıt Ol ve Devam Et
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 🚨 Error Modal -->
+  <div id="errorModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-[60]">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center relative animate-bounce-in">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Bir Sorun Oluştu</h3>
+      <p id="errorMessage" class="text-gray-600 mb-6">İşlem sırasında bir hata meydana geldi.</p>
+      
+      <!-- Countdown container (Hidden by default) -->
+      <div id="countdownContainer" class="hidden mb-6">
+        <div class="text-3xl font-bold text-green-600 mb-1"><span id="countdownTimer">5</span></div>
+        <p class="text-xs text-gray-400">saniye içinde kayıt ekranına yönlendiriliyorsunuz...</p>
+      </div>
+
+      <button id="closeErrorModal" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg transition">
+        Tamam
+      </button>
+    </div>
+  </div>
+
+  <!-- ⚙️ JavaScript -->
+  <script>
+    const modal = document.getElementById("loginModal");
+    const openBtn = document.getElementById("openModal");
+    const closeBtn = document.getElementById("closeModal");
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("loginPassword");
+    const eyeOpen = document.getElementById("eyeOpen");
+    const eyeClosed = document.getElementById("eyeClosed");
+    const disabledLinks = document.querySelectorAll('.disabled-link');
+    const notificationBadge = document.getElementById('notificationBadge');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const notificationList = document.getElementById('notificationList');
+    const clearNotificationsBtn = document.getElementById('clearNotifications');
+
+    // Sunucudan bildirimleri çek ve badge'i güncelle
+    async function updateNotifications() {
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok) {
+          const notifications = await res.json();
+          const count = notifications.length;
+          
+          if (count > 0) {
+            notificationBadge.textContent = count;
+            notificationBadge.classList.remove('hidden');
+          } else {
+            notificationBadge.classList.add('hidden');
+          }
+          return notifications;
+        }
+      } catch (err) {
+        console.error("Bildirimler alınamadı", err);
+      }
+      return [];
+    }
+
+    async function renderNotificationList() {
+      notificationList.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Yükleniyor...</div>';
+      
+      const notifications = await updateNotifications();
+      notificationList.innerHTML = '';
+      const isLoggedIn = localStorage.getItem('userRole'); // Bunu sunucudan da kontrol edebiliriz ama UI için yeterli
+
+      if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Henüz yeni bildirim yok</div>';
+        return;
+      }
+
+      notifications.forEach(note => {
+        const item = document.createElement('div');
+        // Hepsi unread geldiği için yeşil arka plan
+        const bgClass = 'bg-green-50'; 
+        item.className = `p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex items-start gap-3 ${bgClass}`;
+        
+        // Tarih formatlama
+        const dateStr = new Date(note.created_at).toLocaleString('tr-TR');
+
+        item.innerHTML = `
+                <div class="bg-green-100 text-green-600 p-1.5 rounded-full shrink-0">
+                    <span class="text-lg">🍽️</span>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-800 font-medium leading-tight">Yeni bir bildirim var</p>
+                    <p class="text-xs text-gray-400 mt-1">${dateStr}</p>
+                    ${note.food_id ? `<a href="/yemek_verenler?foodId=${note.food_id}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1.5 inline-flex items-center gap-1 font-medium transition-colors">
+                        Bildirimi Görüntüle <span class="text-[10px]">↗</span>
+                    </a>` : ''}
+                </div>
+            `;
+        notificationList.appendChild(item);
+      });
+    }
+
+    // İlk yüklemede kontrol et
+    updateNotifications();
+    // 30 saniyede bir güncelle
+    setInterval(updateNotifications, 30000);
+
+    // Geri butonu ile gelindiğinde veya sayfa görünür olduğunda güncelle
+    window.addEventListener('pageshow', (event) => {
+        updateNotifications();
+    });
+
+    notificationBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const isHidden = notificationDropdown.classList.contains('hidden');
+      
+      if (isHidden) {
+        notificationDropdown.classList.remove('hidden');
+        setTimeout(() => {
+          notificationDropdown.classList.remove('opacity-0', 'scale-95');
+          notificationDropdown.classList.add('opacity-100', 'scale-100');
+        }, 10);
+        
+        await renderNotificationList();
+
+        // Bildirimleri okundu olarak işaretle (Sunucuda)
+        try {
+            await fetch('/api/notifications/read-all', { method: 'PUT' });
+            // Badge'i sıfırla
+            notificationBadge.classList.add('hidden');
+        } catch (err) {
+            console.error("Okundu işaretlenemedi", err);
+        }
+
+      } else {
+        notificationDropdown.classList.remove('opacity-100', 'scale-100');
+        notificationDropdown.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => notificationDropdown.classList.add('hidden'), 200);
+      }
+    });
+
+    clearNotificationsBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        await fetch('/api/notifications/read-all', { method: 'PUT' });
+        notificationList.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Henüz yeni bildirim yok</div>';
+        notificationBadge.classList.add('hidden');
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+        if (!notificationDropdown.classList.contains('hidden')) {
+            notificationDropdown.classList.remove('opacity-100', 'scale-100');
+            notificationDropdown.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => notificationDropdown.classList.add('hidden'), 200);
+        }
+      }
+    });
+
+    // --- TAB SWITCHING LOGIC ---
+    function switchTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const btns = document.querySelectorAll('.tab-btn');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        btns[0].classList.add('active');
+        btns[1].classList.remove('active');
+      } else {
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        btns[0].classList.remove('active');
+        btns[1].classList.add('active');
+      }
+    }
+
+    // --- REGISTER LOGIC ---
+    function handleRegister(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const role = document.querySelector('input[name="regRole"]:checked').value;
+      const il = document.getElementById('regIl').value.trim();
+      const ilce = document.getElementById('regIlce').value.trim();
+      const mahalle = document.getElementById('regMahalle').value.trim();
+
+      // 1. Kullanıcı veritabanını (localStorage) kontrol et
+      const users = JSON.parse(localStorage.getItem('db_users') || '[]');
+
+      // E-posta kontrolü
+      if (users.find(u => u.email === email)) {
+        alert('Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapınız.');
+        switchTab('login');
+        return;
+      }
+
+      // 2. Yeni kullanıcıyı kaydet
+      const newUser = { email, password, role, il, ilce, mahalle };
+      users.push(newUser);
+      localStorage.setItem('db_users', JSON.stringify(users));
+
+      // 3. Konumu "Kayıtlı Konumlar" listesine ekle (yemek_verenler.ejs için)
+      // Anahtar formatı: savedLocations_EMAIL
+      const locationKey = 'savedLocations_' + email;
+      const initialLocation = [{
+        baslik: 'Ev (Kayıtlı)',
+        il: il,
+        ilce: ilce,
+        mahalle: mahalle,
+        sokak: ''
+      }];
+      localStorage.setItem(locationKey, JSON.stringify(initialLocation));
+
+      alert('Kayıt başarılı! Giriş yapılıyor...');
+
+      // 4. Otomatik Giriş Yap
+      performLogin(email, role);
+    }
+
+    // --- LOGIN LOGIC ---
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      const users = JSON.parse(localStorage.getItem('db_users') || '[]');
+      const user = users.find(u => u.email === email && u.password === password);
+
+      if (user) {
+        performLogin(user.email, user.role);
+      } else {
+        // Demo amaçlı: Eğer veritabanında yoksa ama format doğruysa (eski mantık)
+        // yine de izin verelim mi? Hayır, artık kayıt zorunlu olsun.
+        // Ancak test kolaylığı için "admin" veya boş veritabanı durumunda izin verilebilir.
+        // Şimdilik katı kontrol yapıyoruz:
+        alert('Hatalı e-posta veya şifre! Lütfen önce kayıt olunuz.');
+      }
+    }
+
+    function performLogin(email, role) {
+      localStorage.setItem('currentUserEmail', email);
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('unlockButtons', 'true');
+
+      // Sayfayı yenile veya butonları aç
+      window.location.reload();
+    }
+
+    // Sayfa yüklendiğinde localStorage'ı kontrol et
+    window.addEventListener('load', () => {
+      if (localStorage.getItem('unlockButtons') === 'true') {
+        const role = localStorage.getItem('userRole');
+        const btnAlan = document.getElementById('btnYemekAlan');
+        const btnVeren = document.getElementById('btnYemekVeren');
+
+        if (role === 'yemek_veren') {
+          if (btnVeren) btnVeren.classList.remove('disabled-link');
+        } else if (role === 'yemek_alan') {
+          if (btnAlan) btnAlan.classList.remove('disabled-link');
+        }
+        localStorage.removeItem('unlockButtons');
+      }
+    });
+
+    openBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      disabledLinks.forEach(link => link.classList.remove('disabled-link'));
+    });
+
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+      disabledLinks.forEach(link => link.classList.add('disabled-link'));
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+        disabledLinks.forEach(link => link.classList.add('disabled-link'));
+      }
+    });
+    closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("hidden"); });
+
+    // 👁️ Şifre göster/gizle
+    togglePassword.addEventListener("click", () => {
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
+      eyeOpen.classList.toggle("hidden", !isPassword);
+      eyeClosed.classList.toggle("hidden", isPassword);
+    });
+
+    // --- ERROR MODAL LOGIC ---
+    const errorModal = document.getElementById('errorModal');
+    const errorMessage = document.getElementById('errorMessage');
+    const closeErrorModalBtn = document.getElementById('closeErrorModal');
+    const countdownContainer = document.getElementById('countdownContainer');
+    const countdownTimer = document.getElementById('countdownTimer');
+
+    function showError(message, autoRedirect = false) {
+      errorMessage.textContent = message;
+      errorModal.classList.remove('hidden');
+      
+      if (autoRedirect) {
+        countdownContainer.classList.remove('hidden');
+        let timeLeft = 5;
+        countdownTimer.innerText = timeLeft;
+        
+        const interval = setInterval(() => {
+          timeLeft--;
+          countdownTimer.innerText = timeLeft;
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            closeErrorAndSwitchToRegister();
+          }
+        }, 1000);
+
+        // Kullanıcı manuel kapatırsa sayacı durdur
+        closeErrorModalBtn.onclick = () => {
+            clearInterval(interval);
+            closeErrorModal();
+        };
+      } else {
+        countdownContainer.classList.add('hidden');
+        closeErrorModalBtn.onclick = closeErrorModal;
+      }
+    }
+
+    function closeErrorModal() {
+      errorModal.classList.add('hidden');
+      // URL parametrelerini temizle
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    function closeErrorAndSwitchToRegister() {
+      closeErrorModal();
+      modal.classList.remove("hidden"); // Ana login modalını aç
+      switchTab('register'); // Kayıt sekmesine geç
+    }
+    
+    // URL Parametre Kontrolü
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorType = urlParams.get('error');
+
+    if (errorType) {
+      if (errorType === 'user_not_found') {
+        showError("Kullanıcı bulunamadı! Lütfen önce kayıt olunuz.", true);
+      } else if (errorType === 'wrong_password') {
+        showError("Girdiğiniz şifre hatalı. Lütfen tekrar deneyiniz.");
+      } else if (errorType === 'user_exists') {
+        showError("Bu e-posta adresi zaten kayıtlı! Lütfen giriş yapınız.");
+      } else if (errorType === 'missing_info') {
+        showError("Lütfen tüm alanları doldurunuz.");
+      }
+    }
+  </script>
+
+</body>
+
+</html>

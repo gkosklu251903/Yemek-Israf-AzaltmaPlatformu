@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Paneli - Gıda Kurtarma Platformu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-gray-900 z-[9999] flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-96 transform transition-all scale-100">
+            <div class="text-center mb-8">
+                <span class="text-4xl">🔒</span>
+                <h2 class="text-2xl font-bold text-gray-800 mt-4">Admin Girişi</h2>
+                <p class="text-gray-500 text-sm mt-2">Panele erişmek için kimliğinizi doğrulayın</p>
+            </div>
+            <form id="adminLoginForm" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="adminEmail">E-posta Adresi</label>
+                    <input class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition" id="adminEmail" type="email" placeholder="E-posta adresi giriniz" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="adminPassword">Şifre</label>
+                    <input class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition" id="adminPassword" type="password" placeholder="••••••••" minlength="8" maxlength="15" required>
+                    <p id="loginError" class="text-red-500 text-xs mt-2 hidden flex items-center gap-1"><span class="text-lg">⚠</span> E-posta veya şifre hatalı!</p>
+                </div>
+                <button class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-all duration-200" type="submit">
+                    Giriş Yap
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar -->
+        <div class="bg-gray-800 shadow-xl h-16 fixed bottom-0 md:relative md:h-auto z-10 w-full md:w-64">
+            <div class="md:mt-12 md:w-64 md:fixed md:left-0 md:top-0 content-center md:content-start text-left justify-between">
+                <div class="p-4 text-white font-bold text-xl hidden md:block text-center border-b border-gray-700 mb-4">
+                    Admin Paneli
+                </div>
+                <ul class="list-reset flex flex-row md:flex-col py-0 md:py-3 px-1 md:px-2 text-center md:text-left">
+                    <li class="mr-3 flex-1">
+                        <a href="#" onclick="showSection('dashboard')" class="block py-1 md:py-3 pl-1 align-middle text-white no-underline hover:text-white border-b-2 border-green-600 bg-gray-700 md:bg-transparent">
+                            <span class="pb-1 md:pb-0 text-xs md:text-base text-gray-200 block md:inline-block">🏠 <span class="hidden md:inline">Genel Bakış</span></span>
+                        </a>
+                    </li>
+                    <li class="mr-3 flex-1">
+                        <a href="#" onclick="showSection('users')" class="block py-1 md:py-3 pl-1 align-middle text-gray-400 no-underline hover:text-white border-b-2 border-gray-800 hover:border-green-500 transition-colors">
+                            <span class="pb-1 md:pb-0 text-xs md:text-base block md:inline-block">👥 <span class="hidden md:inline">Kullanıcılar</span></span>
+                        </a>
+                    </li>
+                    <li class="mr-3 flex-1">
+                        <a href="#" onclick="showSection('messages')" class="block py-1 md:py-3 pl-1 align-middle text-gray-400 no-underline hover:text-white border-b-2 border-gray-800 hover:border-green-500 transition-colors">
+                            <span class="pb-1 md:pb-0 text-xs md:text-base block md:inline-block">✉️ <span class="hidden md:inline">Gelen Mesajlar</span></span>
+                        </a>
+                    </li>
+                    <li class="mr-3 flex-1">
+                        <a href="#" onclick="showSection('comments')" class="block py-1 md:py-3 pl-1 align-middle text-gray-400 no-underline hover:text-white border-b-2 border-gray-800 hover:border-green-500 transition-colors">
+                            <span class="pb-1 md:pb-0 text-xs md:text-base block md:inline-block">💬 <span class="hidden md:inline">Yorumlar</span></span>
+                        </a>
+                    </li>
+                    <li class="mr-3 flex-1">
+                        <a href="Ana_Sayfa.html" onclick="sessionStorage.clear()" class="block py-1 md:py-3 pl-1 align-middle text-gray-400 no-underline hover:text-red-400 border-b-2 border-gray-800 hover:border-red-500 transition-colors">
+                            <span class="pb-1 md:pb-0 text-xs md:text-base block md:inline-block">🚪 <span class="hidden md:inline">Çıkış Yap</span></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-1 bg-gray-100 mt-0 md:mt-0 pb-24 md:pb-5 md:ml-0">
+
+            <div class="bg-white p-4 shadow flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 md:hidden">Admin Paneli</h3>
+                <div class="hidden md:block"></div>
+                <div id="adminWelcomeMsg" class="text-gray-700 font-semibold"></div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="section-dashboard" class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Panel Özeti</h2>
+
+                <!-- İstatistik Kartları -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Kart 1 -->
+                    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4 text-2xl">👥</div>
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Toplam Kullanıcı</p>
+                                <p id="totalUsersCount" class="text-2xl font-bold text-gray-800">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Kart 2 -->
+                    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4 text-2xl">🍲</div>
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Aktif İlanlar</p>
+                                <p id="activeAdsCount" class="text-2xl font-bold text-gray-800">...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Kart 3 -->
+                    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4 text-2xl">✅</div>
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Alınan Yemek</p>
+                                <p id="rescuedFoodCount" class="text-2xl font-bold text-gray-800">...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tablo Bölümü -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <h3 class="font-bold text-gray-700">Son Eklenen İlanlar</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm uppercase leading-normal">
+                                    <th class="py-3 px-6">Yemek Adı</th>
+                                    <th class="py-3 px-6">Miktar</th>
+                                    <th class="py-3 px-6">Son Tüketim</th>
+                                    <th class="py-3 px-6">Lokasyon</th>
+                                    <th class="py-3 px-6">Durum</th>
+                                    <th class="py-3 px-6">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adsTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="section-users" class="p-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Kullanıcı İşlemleri</h2>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <h3 class="font-bold text-gray-700">Yemek Alan Kullanıcılar</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm uppercase leading-normal">
+                                    <th class="py-3 px-6">Kullanıcı E-posta</th>
+                                    <th class="py-3 px-6">Aldığı Yemek</th>
+                                    <th class="py-3 px-6">PIN Kodu</th>
+                                    <th class="py-3 px-6">İşlem Tarihi</th>
+                                    <th class="py-3 px-6">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Section -->
+            <div id="section-messages" class="p-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">İletişim Mesajları</h2>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <h3 class="font-bold text-gray-700">Gelen Kutusu</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm uppercase leading-normal">
+                                    <th class="py-3 px-6">Ad Soyad</th>
+                                    <th class="py-3 px-6">E-posta</th>
+                                    <th class="py-3 px-6">Konu</th>
+                                    <th class="py-3 px-6">Mesaj</th>
+                                    <th class="py-3 px-6">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="messagesTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div id="section-comments" class="p-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Kullanıcı Yorumları</h2>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <h3 class="font-bold text-gray-700">Son Değerlendirmeler</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm uppercase leading-normal">
+                                    <th class="py-3 px-6">Kullanıcı</th>
+                                    <th class="py-3 px-6">Yemek</th>
+                                    <th class="py-3 px-6">Puan</th>
+                                    <th class="py-3 px-6">Yorum</th>
+                                    <th class="py-3 px-6">Tarih</th>
+                                    <th class="py-3 px-6">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="commentsTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Admin Login Kontrolü
+            const modal = document.getElementById('adminLoginModal');
+            const form = document.getElementById('adminLoginForm');
+            const errorMsg = document.getElementById('loginError');
+            const welcomeMsg = document.getElementById('adminWelcomeMsg');
+
+            // Eğer daha önce giriş yapıldıysa modalı gizle
+            if (sessionStorage.getItem('adminAuth') === 'true') {
+                modal.style.display = 'none';
+                if(welcomeMsg) welcomeMsg.textContent = `Hoşgeldin, ${sessionStorage.getItem('adminName') || 'Admin'}`;
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('adminEmail').value;
+                const password = document.getElementById('adminPassword').value;
+
+                // Şifre Güvenlik Kontrolü (8-15 karakter, Büyük/Küçük harf ve Rakam)
+                const hasUpperCase = /[A-ZÇĞİÖŞÜ]/.test(password);
+                const hasLowerCase = /[a-zçğıöşü]/.test(password);
+                const hasNumber = /\d/.test(password);
+                
+                if (password.length < 8 || password.length > 15 || !hasUpperCase || !hasLowerCase || !hasNumber) {
+                    errorMsg.innerHTML = '<span class="text-lg">⚠</span> Şifre 8-15 karakter olmalı; büyük harf, küçük harf ve rakam içermelidir.';
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+
+                // Yetkili Admin Listesi
+                const allowedAdmins = [
+                    { email: 'goktug25@gmail.com', pass: 'Goktug.251903', name: 'Göktuğ' },
+                    { email: 'izzet42@gmail.com', pass: 'İzzet,42251903', name: 'İzzet' },
+                    { email: 'enesK25@gmail.com', pass: 'Ekuralay.252525', name: 'Enes' }
+                ];
+
+                const admin = allowedAdmins.find(a => a.email === email && a.pass === password);
+
+                if (admin) {
+                    sessionStorage.setItem('adminAuth', 'true');
+                    sessionStorage.setItem('adminName', admin.name);
+                    if(welcomeMsg) welcomeMsg.textContent = `Hoşgeldin, ${admin.name}`;
+                    modal.style.display = 'none';
+                } else {
+                    errorMsg.innerHTML = '<span class="text-lg">⚠</span> E-posta veya şifre hatalı!';
+                    errorMsg.classList.remove('hidden');
+                }
+            });
+
+            // Toplam kullanıcı sayısını localStorage'dan al ve göster
+            const registeredEmails = JSON.parse(localStorage.getItem('registeredEmails') || '[]');
+            document.getElementById('totalUsersCount').textContent = registeredEmails.length;
+            loadDashboard();
+            loadUsers();
+        });
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/foods');
+                if (response.ok) {
+                    const foods = await response.json();
+                    const deletedFoods = JSON.parse(localStorage.getItem('deletedFoods') || '[]');
+                    const takenFoods = JSON.parse(localStorage.getItem('takenFoods') || '[]');
+                    
+                    const activeCount = foods.filter(food => {
+                        // Silinmiş ilanları hariç tut
+                        if (deletedFoods.includes(String(food.id))) return false;
+                        
+                        // Miktar ve durum kontrolü (yemek_verenler.ejs mantığı)
+                        let qty = 1;
+                        if (food.miktar && typeof food.miktar === 'string' && food.miktar.match(/(\d+)/)) {
+                            qty = parseInt(food.miktar.match(/(\d+)/)[1]);
+                        }
+                        return qty > 0 && food.status !== 'alindi';
+                    }).length;
+                    
+                    document.getElementById('activeAdsCount').textContent = activeCount;
+
+                    // Kurtarılan yemek sayısı (status='alindi' veya localStorage'da alınanlar)
+                    const rescuedCount = foods.filter(food => {
+                        return food.status === 'alindi' || takenFoods.includes(String(food.id));
+                    }).length;
+                    document.getElementById('rescuedFoodCount').textContent = rescuedCount;
+
+                    // Tabloyu doldur
+                    const tableBody = document.getElementById('adsTableBody');
+                    tableBody.innerHTML = '';
+
+                    foods.slice().reverse().forEach(food => {
+                        // Silinmiş ilanları gösterme
+                        if (deletedFoods.includes(String(food.id))) return;
+
+                        const row = document.createElement('tr');
+                        row.className = "border-b border-gray-200 hover:bg-gray-100";
+                        
+                        let statusHtml = '<span class="bg-yellow-200 text-yellow-700 py-1 px-3 rounded-full text-xs font-bold">Aktif</span>';
+                        if (food.status === 'alindi' || takenFoods.includes(String(food.id))) {
+                            statusHtml = '<span class="bg-red-200 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Alındı</span>';
+                        } else if (food.status === 'hazir') {
+                            statusHtml = '<span class="bg-green-200 text-green-700 py-1 px-3 rounded-full text-xs font-bold">Hazır</span>';
+                        }
+
+                        row.innerHTML = `
+                            <td class="py-3 px-6 font-medium">${food.name || '-'}</td>
+                            <td class="py-3 px-6">${food.miktar || '-'}</td>
+                            <td class="py-3 px-6">${food.zaman || '-'}</td>
+                            <td class="py-3 px-6">${food.lokasyon || '-'}</td>
+                            <td class="py-3 px-6">${statusHtml}</td>
+                            <td class="py-3 px-6">
+                                <button onclick="deleteAd('${food.id}')" class="bg-red-100 text-red-600 hover:bg-red-200 py-1 px-3 rounded text-xs font-bold transition-colors">Sil</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Veri çekilemedi:', error);
+            }
+        }
+
+        function loadUsers() {
+            const usersTableBody = document.getElementById('usersTableBody');
+            const claims = JSON.parse(localStorage.getItem('foodClaims') || '[]');
+            
+            usersTableBody.innerHTML = '';
+            if (claims.length === 0) {
+                usersTableBody.innerHTML = '<tr><td colspan="4" class="py-3 px-6 text-center">Henüz işlem kaydı bulunmamaktadır.</td></tr>';
+            } else {
+                claims.slice().reverse().forEach((claim, i) => {
+                    const originalIndex = claims.length - 1 - i;
+                    const row = document.createElement('tr');
+                    row.className = "border-b border-gray-200 hover:bg-gray-100";
+                    row.innerHTML = `
+                        <td class="py-3 px-6 font-medium">${claim.user}</td>
+                        <td class="py-3 px-6">${claim.food}</td>
+                        <td class="py-3 px-6 font-mono font-bold text-blue-600 tracking-wider">${claim.pin || '-'}</td>
+                        <td class="py-3 px-6">${claim.date}</td>
+                        <td class="py-3 px-6">
+                            <button onclick="deleteUserClaim(${originalIndex})" class="bg-red-100 text-red-600 hover:bg-red-200 py-1 px-3 rounded text-xs font-bold transition-colors">Sil</button>
+                        </td>
+                    `;
+                    usersTableBody.appendChild(row);
+                });
+            }
+        }
+
+        function showSection(sectionId) {
+            document.getElementById('section-dashboard').classList.add('hidden');
+            document.getElementById('section-users').classList.add('hidden');
+            document.getElementById('section-messages').classList.add('hidden');
+            document.getElementById('section-comments').classList.add('hidden');
+            document.getElementById('section-' + sectionId).classList.remove('hidden');
+
+            if (sectionId === 'messages') {
+                loadMessages();
+            } else if (sectionId === 'comments') {
+                loadComments();
+            }
+        }
+
+        async function loadMessages() {
+            const tbody = document.getElementById('messagesTableBody');
+            tbody.innerHTML = '';
+            
+            const messages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
+            
+            messages.slice().reverse().forEach((msg, i) => {
+                const originalIndex = messages.length - 1 - i;
+                const row = document.createElement('tr');
+                row.className = "border-b border-gray-200 hover:bg-gray-100";
+                row.innerHTML = `
+                    <td class="py-3 px-6 font-medium">${msg.name || '-'}</td>
+                    <td class="py-3 px-6">${msg.email || '-'}</td>
+                    <td class="py-3 px-6">${msg.subject || '-'}</td>
+                    <td class="py-3 px-6">${msg.message || '-'}</td>
+                    <td class="py-3 px-6">
+                        <button onclick="deleteMessage(${originalIndex})" class="bg-red-100 text-red-600 hover:bg-red-200 py-1 px-3 rounded text-xs font-bold transition-colors">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadComments() {
+            const tbody = document.getElementById('commentsTableBody');
+            tbody.innerHTML = '';
+            
+            const reviews = JSON.parse(localStorage.getItem('foodReviews') || '[]');
+            
+            reviews.slice().reverse().forEach((review, i) => {
+                const row = document.createElement('tr');
+                row.className = "border-b border-gray-200 hover:bg-gray-100";
+                
+                let starColor = 'text-yellow-500';
+                if (review.rating <= 2) {
+                    starColor = 'text-red-500';
+                } else if (review.rating >= 4) {
+                    starColor = 'text-green-500';
+                }
+
+                // Orijinal dizideki indeksi hesapla (ters çevrildiği için)
+                const originalIndex = reviews.length - 1 - i;
+
+                row.innerHTML = `
+                    <td class="py-3 px-6 font-medium">${review.user || 'Anonim'}</td>
+                    <td class="py-3 px-6">${review.food || '-'}</td>
+                    <td class="py-3 px-6"><span class="${starColor} font-bold">${'★'.repeat(review.rating)}</span><span class="text-gray-300">${'★'.repeat(5 - review.rating)}</span></td>
+                    <td class="py-3 px-6 italic">"${review.comment || '-'}"</td>
+                    <td class="py-3 px-6 text-xs">${review.date || '-'}</td>
+                    <td class="py-3 px-6">
+                        <button onclick="deleteComment(${originalIndex})" class="bg-red-100 text-red-600 hover:bg-red-200 py-1 px-3 rounded text-xs font-bold transition-colors">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteComment(index) {
+            if(confirm('Bu yorumu silmek istediğinize emin misiniz?')) {
+                const reviews = JSON.parse(localStorage.getItem('foodReviews') || '[]');
+                reviews.splice(index, 1);
+                localStorage.setItem('foodReviews', JSON.stringify(reviews));
+                loadComments();
+            }
+        }
+
+        function deleteAd(id) {
+            if(confirm('Bu ilanı silmek istediğinize emin misiniz?')) {
+                const deletedFoods = JSON.parse(localStorage.getItem('deletedFoods') || '[]');
+                deletedFoods.push(String(id));
+                localStorage.setItem('deletedFoods', JSON.stringify(deletedFoods));
+                loadDashboard();
+            }
+        }
+
+        function deleteUserClaim(index) {
+            if(confirm('Bu işlem kaydını silmek istediğinize emin misiniz?')) {
+                const claims = JSON.parse(localStorage.getItem('foodClaims') || '[]');
+                claims.splice(index, 1);
+                localStorage.setItem('foodClaims', JSON.stringify(claims));
+                loadUsers();
+            }
+        }
+
+        function deleteMessage(index) {
+            if(confirm('Bu mesajı silmek istediğinize emin misiniz?')) {
+                const messages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
+                messages.splice(index, 1);
+                localStorage.setItem('contactMessages', JSON.stringify(messages));
+                loadMessages();
+            }
+        }
+    </script>
+</body>
+</html>

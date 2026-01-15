@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hakkımızda - Yemek İsrafını Azaltma Platformu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <nav class="bg-gray-100 shadow-sm py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <h1 class="text-xl font-semibold text-gray-800"><a href="Ana_Sayfa.html">Yemek İsrafını Azaltma Platformu</a></h1>
+                       <span class="text-2xl">🍽️</span>
+     </div>
+            <div>
+                <a href="Ana_Sayfa.html" class="text-gray-600 hover:text-green-600 mr-4 font-medium transition">Ana Sayfa</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-green-600 py-16 text-center text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-10"></div> <div class="container mx-auto px-6 relative z-10">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Geleceği Besle, İsrafı Önle</h1>
+            <p class="text-lg md:text-xl text-green-100 max-w-2xl mx-auto">
+                Teknoloji ve duyarlılığı birleştirerek gıda israfına karşı sürdürülebilir bir çözüm üretiyoruz.
+            </p>
+        </div>
+    </header>
+
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Projenin Amacı Nedir?</h2>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        Dünya genelinde üretilen gıdaların önemli bir kısmı ne yazık ki tüketilmeden israf edilmektedir. "Yemek İsrafını Azaltma Platformu" olarak amacımız, restoranlar, marketler ve bireyler arasında bir köprü kurarak bu gıdaların ihtiyaç sahiplerine veya indirimli olarak tüketicilere ulaşmasını sağlamaktır.
+                    </p>
+                    <p class="text-gray-600 leading-relaxed">
+                        Bu platform sayesinde hem ekonomik kayıpların önüne geçiyor hem de doğamızı korumaya katkı sağlıyoruz.
+                    </p>
+                </div>
+                <div>
+                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop" 
+                         alt="Gıda Paylaşımı" 
+                         class="rounded-lg shadow-xl hover:scale-105 transition duration-500 object-cover h-80 w-full">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">Proje Ekibimiz</h2>
+                <p class="text-gray-500 mt-2">Bu platformun arkasındaki geliştirici ekip.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 text-center border-t-4 border-yellow-400">
+                    <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
+                        <img src="images/Goktug.png" alt="Göktuğ" class="w-full h-full">
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Göktuğ</h3>
+                    <p class="text-green-600 font-medium mb-3">Frontend Developer</p>
+                    <p class="text-gray-500 text-sm">Arayüz tasarımı, kullanıcı deneyimi (UX) ve HTML/CSS/JS geliştirmeleri.</p>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 text-center border-t-4 border-blue-500">
+                    <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
+                        <img src="images/izzet.jpeg" alt="İzzet" class="w-full h-full">
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">İzzet</h3>
+                    <p class="text-green-600 font-medium mb-3">Backend Developer</p>
+                    <p class="text-gray-500 text-sm">Sunucu mimarisi, API entegrasyonları ve sistem güvenliği.</p>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 text-center border-t-4 border-red-500">
+                    <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
+                        <img src="images/enes.jpeg" alt="Enes" class="w-full h-full">
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Enes</h3>
+                    <p class="text-green-600 font-medium mb-3">Database Admin</p>
+                    <p class="text-gray-500 text-sm">Veri tabanı tasarımı, optimizasyonu ve veri yönetimi.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-gray-300 py-6 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Gıda Kurtarma Projesi | <a href="hakkimizda.html" class="text-white hover:underline">Hakkımızda</a> | <a href="#" class="text-white hover:underline">İletişim</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>

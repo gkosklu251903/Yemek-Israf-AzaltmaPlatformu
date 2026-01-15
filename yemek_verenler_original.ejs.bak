@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mevcut Artan Yemek Listesi - Önizleme</title>
+  <style>
+    :root{
+      --green-600:#2f855a;
+      --green-700:#276749;
+      --yellow-500:#facc15;
+      --yellow-600:#eab308;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:"Inter",sans-serif;
+      color:#1f2937;
+      background:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+      background-size:cover;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    .container{width:92%;max-width:1180px;margin:48px auto 24px;}
+    .top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap}
+    h1{font-size:32px;margin:6px 0 8px;color:white;text-shadow:0 2px 6px rgba(0,0,0,0.4);}
+    p.lead{color:#f9fafb;margin:0 0 22px}
+
+    /* 🎨 Yeni/Güncellenmiş Filtre Kontrolleri Stilleri */
+    .filter-controls{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        /* Arka plan biraz daha opaklık katılarak kartlarla uyumlu hale getirildi */
+        background:rgba(255,255,255,0.1); 
+        padding:12px;
+        border-radius:12px;
+        box-shadow:0 4px 16px rgba(0,0,0,0.1);
+        border:1px solid rgba(255,255,255,0.2);
+    }
+
+    #searchInput, #filterSelect {
+        padding:10px 16px;
+        border-radius:8px;
+        border:1px solid #ddd;
+        min-width:250px; /* Arama alanı için */
+        font-size:16px;
+        color:#333;
+        transition:border-color 0.3s, box-shadow 0.3s;
+        /* Eski inline stili kaldırıp buraya taşıdık */
+        box-sizing: border-box; 
+    }
+
+    #searchInput:focus, #filterSelect:focus {
+        border-color: var(--green-600); /* Odaklandığında yeşil çerçeve */
+        box-shadow: 0 0 0 3px rgba(47, 133, 90, 0.2);
+        outline:none;
+    }
+    
+    #filterSelect {
+        min-width:120px; /* Filtre için daha küçük genişlik */
+        cursor:pointer;
+        background-color:white; /* Seçenek kutusu için beyaz arka plan */
+        /* Flexbox'ta güzel görünmesi için max-width eklendi */
+        max-width: 150px; 
+    }
+    /* Filtreleme Stilleri Sonu */
+    
+    .cards{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
+    .card{
+      width:340px;
+      background:rgba(255,255,255,0.2);
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow:0 8px 32px rgba(0,0,0,0.15);
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,0.3);
+      display:flex;flex-direction:column;
+      transition:.2s ease;
+    }
+    .card:hover{transform:translateY(-4px);}
+
+    .card img{width:100%;height:250px;object-fit:cover;}
+    .card-body{padding:14px 18px;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.6);}
+    .card-body h3{margin:0 0 8px;font-size:18px;color:white;}
+    .desc{font-size:14px;}
+
+    .card-actions{display:flex;gap:12px;padding:14px;border-top:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);}
+    .btn{
+      flex:1;
+      padding:10px 16px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      border:none;
+      transition:.25s;
+    }
+    .btn-talep{background:var(--green-600);color:white;}
+    .btn-talep:hover{background:var(--green-700);}
+    .btn-detay{background:var(--yellow-500);color:#111827;}
+    .btn-detay:hover{background:var(--yellow-600);}
+    .btn-sil{background:red;color:white;}
+    .btn-sil:hover{background:darkred;}
+
+    footer{text-align:center;color:white;background:black;padding:10px;margin-top:auto;font-size:14px;}
+
+    /* 💎 Modal */
+    #detailModal{
+      position:fixed;inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,0.55);
+      backdrop-filter:blur(8px);
+      z-index:999;
+    }
+
+    .modal-content{
+      background:rgba(255,255,255,0.95);
+      border-radius:18px;
+      width:90%;
+      max-width:520px;
+      box-shadow:0 12px 40px rgba(0,0,0,0.25);
+      overflow:hidden;
+      animation:fadeIn .3s ease;
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+
+    .modal-header img{
+      width:100%;
+      height:200px;
+      object-fit:cover;
+      border-bottom:1px solid rgba(0,0,0,0.1);
+    }
+
+    .modal-body{padding:20px 24px;}
+    .modal-body h2{text-align:center;margin-bottom:12px;font-size:22px;color:#111827;}
+    .info-item{display:flex;align-items:center;gap:10px;margin:10px 0;padding:8px 0;border-bottom:1px solid #e5e7eb;}
+    .info-item span.label{font-weight:600;min-width:150px;color:#374151;}
+    .info-item span.value{color:#1f2937;}
+
+    .close-btn{
+      display:block;
+      margin:20px auto 10px;
+      background:var(--green-600);
+      color:white;
+      border:none;
+      border-radius:8px;
+      padding:10px 20px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+    }
+    .close-btn:hover{background:var(--green-700);transform:scale(1.05);}
+
+    .add-food-form {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .add-food-form input, .add-food-form textarea {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .add-food-form button {
+      background: var(--green-600);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .add-food-form button:hover {
+      background: var(--green-700);
+    }
+    
+    #lokasyonContainer {
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      margin-bottom: 10px;
+    }
+    
+    #lokasyonContainer input {
+      margin-bottom: 8px !important;
+    }
+    
+    #haritaBtnForm {
+      width: 100%;
+      background: var(--green-600);
+      color: white;
+      padding: 10px !important;
+      border: none !important;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 8px !important;
+      transition: background 0.3s;
+    }
+    
+    #haritaBtnForm:hover {
+      background: var(--green-700);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-row">
+      <div>
+        <div style="background-color:#ff9900;color:white;padding:10px 20px;border-radius:8px;display:inline-block;font-weight:bold;">
+          Restoran Paneli
+        </div>
+        <h1>Mevcut Artan Yemek Listesi</h1>
+        <p class="lead">Aşağıdaki listeden mevcut artan yemekleri görüntüleyebilirsiniz.</p>
+      </div>
+      
+      <div class="filter-controls">
+        <input id="searchInput" placeholder="Yemek ara..." type="search">
+        <label><input type="checkbox" id="tumuCheck" checked> Tümü</label>
+        <label><input type="checkbox" id="hazirCheck"> Hazır</label>
+        <label><input type="checkbox" id="yakindaCheck"> Yakında</label>
+      </div>
+      </div>
+
+    <div class="add-food-form">
+      <h2>Yemek Ekle</h2>
+      <form action="/add-food" method="post">
+        <input type="text" id="yemekAdi" name="name" placeholder="🍽️ Yemek Adı" required>
+        <input type="text" name="miktar" placeholder="⚖️ Miktar" required>
+        <input type="text" name="zaman" placeholder="⏰ Son Tüketim" required>
+        <textarea name="aciklama" placeholder="📝 Açıklama" required></textarea>
+        <div id="lokasyonContainer">
+          <input type="text" id="il" placeholder="🏙️ İl" required>
+          <input type="text" id="ilce" placeholder="🏘️ İlçe" required>
+          <input type="text" id="sokak" placeholder="🛣️ Sokak" required>
+          <input type="text" id="mahalle" placeholder="🏡 Mahalle" required>
+          <button type="button" id="haritaBtnForm">🗺️ Harita ile Seç</button>
+        </div>
+        <input type="hidden" name="lokasyon" id="lokasyonHidden">
+        <input type="hidden" name="image" id="hiddenImage">
+        <button type="button" id="gorselBulBtn">Görsel Bul</button>
+        <img id="yemekGorseli" src="" alt="Yemek Görseli" style="max-width: 200px; margin-top: 10px; display: none;">
+        <button type="submit">Ekle</button>
+      </form>
+    </div>
+
+    <div class="cards" id="cards">
+      <% foods.forEach(food => { %>
+      <article class="card" data-status="<%= food.status %>" data-miktar="<%= food.miktar %>" data-zaman="<%= food.zaman %>" data-lokasyon="<%= food.lokasyon %>" data-name="<%= food.name %>">
+        <img src="<%= food.image %>" alt="<%= food.name %>">
+        <div class="card-body">
+          <h3><%= food.name %></h3>
+          <p class="desc"><%= food.description %></p>
+        </div>
+        <div class="card-actions">
+          <form action="/request-food" method="post" style="display:inline;">
+            <input type="hidden" name="id" value="<%= food.id %>">
+            <button type="submit" class="btn btn-talep">Talep Et</button>
+          </form>
+          <button class="btn btn-detay" onclick="onDetay(this)">Detay</button>
+          <form action="/delete-food" method="post" style="display:inline;">
+            <input type="hidden" name="index" value="<%= food.id %>">
+            <button type="submit" class="btn btn-sil">Sil</button>
+          </form>
+        </div>
+      </article>
+      <% }); %>
+    </div>
+  </div>
+
+  <footer>© 2025 Yemek İsrafını Azaltan Web Platformu | Telif Hakkı</footer>
+
+  <div id="detailModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <img id="modalImage" src="" alt="Yemek Fotoğrafı">
+      </div>
+      <div class="modal-body">
+        <h2 id="modalTitle">Yemek Bilgisi</h2>
+        <div class="info-item"><span class="label">🍽️ Yemek Adı:</span><span class="value" id="modalYemek"></span></div>
+        <div class="info-item"><span class="label">⚖️ Miktar:</span><span class="value" id="modalMiktar"></span></div>
+        <div class="info-item"><span class="label">⏰ Son Tüketim:</span><span class="value" id="modalZaman"></span></div>
+        <div class="info-item"><span class="label">📝 Açıklama:</span><span class="value" id="modalAciklama"></span></div>
+        <div class="info-item"><span class="label">📍 Lokasyon:</span><span class="value" id="modalLokasyon"></span></div>
+        <button class="close-btn" onclick="closeModal()">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places,geocoder"></script>
+  <script>
+    // 1. Unsplash Bilgilerin
+    const UNSPLASH_ACCESS_KEY = 'lu-7lkrSgA2pwz6rP5H3ORVWQ5wG9RYkUQjNYgVqogo';
+    let map;
+    let selectedLocation = null;
+    let marker = null;
+
+    async function yemekEkleVeGorselBul(turkceYemekAdi) {
+        try {
+            // ADIM 1: Türkçe ismi İngilizceye çevir (Ücretsiz MyMemory API kullanıyoruz)
+            console.log("Çeviri yapılıyor...");
+            const translateRes = await fetch(
+                `https://api.mymemory.translated.net/get?q=${encodeURIComponent(turkceYemekAdi)}&langpair=tr|en`
+            );
+            const translateData = await translateRes.json();
+            const englishName = translateData.responseData.translatedText;
+
+            console.log(`Çeviri Sonucu: ${englishName}`);
+
+            // ADIM 2: İngilizce isimle Unsplash'tan fotoğraf ara
+            // Sonuna "food" ekliyoruz ki daha alakalı sonuçlar gelsin
+            const unsplashRes = await fetch(
+                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(englishName + " food")}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=5`
+            );
+            const unsplashData = await unsplashRes.json();
+
+            if (unsplashData.results.length > 0) {
+                const randomIndex = Math.floor(Math.random() * unsplashData.results.length);
+                const gorselUrl = unsplashData.results[randomIndex].urls.regular;
+                console.log("Bulunan Görsel:", gorselUrl);
+
+                // Burada görseli ekrana basabilir veya veritabanına kaydedebilirsin
+                document.getElementById('yemekGorseli').src = gorselUrl;
+                document.getElementById('yemekGorseli').style.display = 'block';
+                document.getElementById('hiddenImage').value = gorselUrl;
+            } else {
+                console.log("Uygun bir görsel bulunamadı.");
+                document.getElementById('yemekGorseli').style.display = 'none';
+                document.getElementById('hiddenImage').value = '';
+            }
+
+        } catch (error) {
+            console.error("Hata oluştu:", error);
+            document.getElementById('yemekGorseli').style.display = 'none';
+        }
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    const tumuCheck = document.getElementById('tumuCheck');
+    const hazirCheck = document.getElementById('hazirCheck');
+    const yakindaCheck = document.getElementById('yakindaCheck');
+    const cards = document.querySelectorAll('.card');
+
+    function applyFilters(){
+      const search = searchInput.value.toLowerCase();
+      const showTumu = tumuCheck.checked;
+      const showHazir = hazirCheck.checked;
+      const showYakinda = yakindaCheck.checked;
+      cards.forEach(card => {
+        const matchesSearch = card.querySelector('h3').innerText.toLowerCase().includes(search);
+        if (showTumu) {
+          card.style.display = matchesSearch ? 'flex' : 'none';
+        } else {
+          const desc = card.querySelector('.desc').innerText.toLowerCase();
+          const isHazir = desc.includes('hazır');
+          const isYakinda = desc.includes('yakında');
+          const matchesStatus = (isHazir && showHazir) || (isYakinda && showYakinda);
+          card.style.display = (matchesSearch && matchesStatus) ? 'flex' : 'none';
+        }
+      });
+    }
+    tumuCheck.addEventListener('change', applyFilters);
+    hazirCheck.addEventListener('change', applyFilters);
+    yakindaCheck.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    function onTalep(btn){
+      btn.disabled=true;
+      btn.innerText='Talep gönderildi';
+      setTimeout(()=>{btn.disabled=false;btn.innerText='Talep Et'},2000);
+    }
+
+    function onDetay(btn){
+      const card=btn.closest('.card');
+      document.getElementById('modalImage').src=card.querySelector('img').src;
+      document.getElementById('modalYemek').innerText=card.querySelector('h3').innerText;
+      document.getElementById('modalMiktar').innerText=card.dataset.miktar;
+      document.getElementById('modalZaman').innerText=card.dataset.zaman;
+      document.getElementById('modalAciklama').innerText=card.querySelector('.desc').innerText;
+      document.getElementById('modalLokasyon').innerText=card.dataset.lokasyon;
+      document.getElementById('detailModal').style.display='flex';
+    }
+    function closeModal(){document.getElementById('detailModal').style.display='none';}
+
+    // Lokasyon bilgilerini güncelle
+    function updateLokasyonHidden() {
+        const il = document.getElementById('il').value.trim();
+        const ilce = document.getElementById('ilce').value.trim();
+        const sokak = document.getElementById('sokak').value.trim();
+        const mahalle = document.getElementById('mahalle').value.trim();
+        
+        if (il && ilce && sokak && mahalle) {
+            const fullLocation = il + ', ' + ilce + ', ' + mahalle + ', ' + sokak;
+            document.getElementById('lokasyonHidden').value = fullLocation;
+        }
+    }
+    
+    // İl, ilçe, sokak, mahalle alanlarına change listener ekle
+    document.getElementById('il').addEventListener('change', updateLokasyonHidden);
+    document.getElementById('ilce').addEventListener('change', updateLokasyonHidden);
+    document.getElementById('sokak').addEventListener('change', updateLokasyonHidden);
+    document.getElementById('mahalle').addEventListener('change', updateLokasyonHidden);
+    
+    // Harita ile Seç butonu
+    document.getElementById('haritaBtnForm').addEventListener('click', function(e) {
+        e.preventDefault();
+        openLocationMap();
+    });
+    
+    // Haritayı aç
+    function openLocationMap() {
+        // Modal pencere oluştur
+        const modal = document.createElement('div');
+        modal.id = 'mapModal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';\n        \n        const mapContent = document.createElement('div');\n        mapContent.style.cssText = 'background: white; border-radius: 12px; width: 90%; max-width: 800px; height: 600px; display: flex; flex-direction: column;';\n        \n        const header = document.createElement('div');\n        header.style.cssText = 'padding: 15px; background: var(--green-600); color: white; border-radius: 12px 12px 0 0; font-weight: bold;';\n        header.textContent = 'Konumunuzu Seçiniz';\n        \n        const mapContainer = document.createElement('div');\n        mapContainer.id = 'mapBox';\n        mapContainer.style.cssText = 'flex: 1; position: relative;';\n        \n        const buttonContainer = document.createElement('div');\n        buttonContainer.style.cssText = 'display: flex; gap: 10px; padding: 15px; background: #f5f5f5; border-radius: 0 0 12px 12px;';\n        \n        const confirmBtn = document.createElement('button');\n        confirmBtn.textContent = '✓ Konumu Onayla';\n        confirmBtn.style.cssText = 'flex: 1; padding: 10px; background: var(--green-600); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;';\n        confirmBtn.addEventListener('click', confirmLocationFromMap);\n        \n        const closeBtn = document.createElement('button');\n        closeBtn.textContent = '✕ Kapat';\n        closeBtn.style.cssText = 'flex: 1; padding: 10px; background: #999; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;';\n        closeBtn.addEventListener('click', () => document.body.removeChild(modal));\n        \n        buttonContainer.appendChild(confirmBtn);\n        buttonContainer.appendChild(closeBtn);\n        \n        mapContent.appendChild(header);\n        mapContent.appendChild(mapContainer);\n        mapContent.appendChild(buttonContainer);\n        modal.appendChild(mapContent);\n        document.body.appendChild(modal);\n        \n        // Haritayı başlat\n        if (!map) {\n            const turkeyCenter = { lat: 41.0082, lng: 28.9784 };\n            map = new google.maps.Map(document.getElementById('mapBox'), {\n                zoom: 10,\n                center: turkeyCenter,\n                mapTypeControl: true,\n                fullscreenControl: false\n            });\n            \n            // Tıklama ile konum seçme\n            map.addListener('click', function(event) {\n                selectedLocation = { lat: event.latLng.lat(), lng: event.latLng.lng() };\n                \n                if (marker) marker.setMap(null);\n                marker = new google.maps.Marker({\n                    position: selectedLocation,\n                    map: map,\n                    title: 'Seçili Konum'\n                });\n                \n                getAddressFromCoordinates(selectedLocation.lat, selectedLocation.lng);\n            });\n        }\n    }\n    \n    // Koordinatlardan adres al\n    function getAddressFromCoordinates(lat, lng) {\n        const geocoder = new google.maps.Geocoder();\n        geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results) {\n            if (results && results[0]) {\n                const addressComponents = results[0].address_components;\n                let il = '', ilce = '', sokak = '', mahalle = '';\n                \n                addressComponents.forEach(function(component) {\n                    const types = component.types;\n                    if (types.includes('administrative_area_level_1')) {\n                        il = component.long_name;\n                    }\n                    if (types.includes('administrative_area_level_2')) {\n                        ilce = component.long_name;\n                    }\n                    if (types.includes('route')) {\n                        sokak = component.long_name;\n                    }\n                    if (types.includes('neighborhood') || types.includes('sublocality')) {\n                        mahalle = component.long_name;\n                    }\n                });\n                \n                // Input alanlarını doldur\n                document.getElementById('il').value = il || 'Tanımlanmamış';\n                document.getElementById('ilce').value = ilce || 'Tanımlanmamış';\n                document.getElementById('sokak').value = sokak || 'Tanımlanmamış';\n                document.getElementById('mahalle').value = mahalle || 'Tanımlanmamış';\n                \n                updateLokasyonHidden();\n            }\n        });\n    }\n    \n    // Konumu onayla\n    function confirmLocationFromMap() {\n        if (!selectedLocation) {\n            alert('Lütfen harita üzerinde bir konum seçiniz.');\n            return;\n        }\n        getAddressFromCoordinates(selectedLocation.lat, selectedLocation.lng);\n        const modal = document.getElementById('mapModal');\n        setTimeout(function() {\n            if (modal && modal.parentNode) {\n                document.body.removeChild(modal);\n            }\n        }, 500);\n    }\n    \n    // Form gönderilmeden önce kontrol\n    document.querySelector('form').addEventListener('submit', function(e) {\n        const il = document.getElementById('il').value.trim();\n        const ilce = document.getElementById('ilce').value.trim();\n        const sokak = document.getElementById('sokak').value.trim();\n        const mahalle = document.getElementById('mahalle').value.trim();\n        \n        if (!il || !ilce || !sokak || !mahalle) {\n            e.preventDefault();\n            alert('Lütfen tüm lokasyon alanlarını doldurunuz.');\n            return false;\n        }\n    });\n\n    // Görsel Bul butonuna event listener\n    document.getElementById('gorselBulBtn').addEventListener('click', () => {\n        const yemekAdi = document.getElementById('yemekAdi').value.trim();\n        if (yemekAdi) {\n            yemekEkleVeGorselBul(yemekAdi);\n        } else {\n            alert('Lütfen yemek adını giriniz.');\n        }\n    });\n  </script>
+</body>
+</html>

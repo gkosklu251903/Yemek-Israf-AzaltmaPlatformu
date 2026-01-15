@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yemek Listesi - Food Waste Platform</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:wght@700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1d4ed8",secondary: "#10b981",accent: "#ef4444","background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                        "card-light": "rgba(255, 255, 255, 0.9)",
+                        "card-dark": "rgba(30, 41, 59, 0.9)",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Playfair Display", "serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                        'xl': "1rem",
+                        '2xl': "1.5rem",
+                    },
+                    backgroundImage: {
+                        'hero-pattern': "url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=2070&auto=format&fit=crop')",
+                    }
+                },
+            },
+        };
+</script>
+<style>
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        .bg-blurred-food {
+            filter: blur(2.5px);
+            transform: scale(1.05);}
+            
+/* Modal Styles (Preserved) */
+
+@keyframes fadeOut {
+  0% {opacity: 1;}
+  80% {opacity: 1;}
+  100% {opacity: 0;}
+}
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 font-sans min-h-screen relative overflow-x-hidden selection:bg-primary selection:text-white transition-colors duration-300">
+<div class="fixed inset-0 z-0 overflow-hidden">
+<div class="absolute inset-0 bg-hero-pattern bg-cover bg-center bg-blurred-food opacity-75 dark:opacity-40 pointer-events-none"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-white/40 via-background-light/90 to-background-light dark:from-slate-900/40 dark:via-background-dark/90 dark:to-background-dark pointer-events-none"></div>
+</div>
+<div class="relative z-10 container mx-auto px-4 py-6 md:py-10 min-h-screen flex flex-col">
+<header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 relative">
+<a href="yemek_alanlar.html" class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-blue-700 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 group self-start md:self-auto">
+<span class="material-icons-round text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span>Geri Dön</span>
+</a>
+<div class="text-center flex-1">
+<div class="inline-block relative">
+<div class="flex items-center justify-center gap-3 md:gap-4 mb-3">
+<div class="hidden md:flex items-center justify-center w-12 h-12 rounded-2xl bg-white/90 dark:bg-slate-800/90 shadow-lg border border-white/50 dark:border-slate-700 backdrop-blur-sm text-primary transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+<span class="material-icons-round text-3xl">restaurant_menu</span>
+</div>
+<h1 class="text-5xl md:text-6xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-primary to-slate-800 dark:from-white dark:via-blue-400 dark:to-slate-200 tracking-tight drop-shadow-sm pb-1">
+                        Yemek Listesi
+                    </h1>
+</div>
+<div class="flex items-center justify-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary shadow-sm"></span>
+<div class="h-1.5 w-64 md:w-96 bg-gradient-to-r from-primary via-blue-500 to-secondary rounded-full shadow-lg shadow-primary/20"></div>
+<span class="h-2 w-2 rounded-full bg-primary shadow-sm"></span>
+</div>
+</div>
+<% if (lokasyon) { %>
+<p class="mt-2 text-slate-700 dark:text-slate-300 font-medium text-lg">📍 Lokasyon: <%= lokasyon %></p>
+<% } %>
+<p id="selectedFoodMessage" style="display: none;" class="mt-4 text-slate-600 dark:text-slate-300 font-medium flex items-center justify-center gap-2 drop-shadow-sm bg-white/50 dark:bg-slate-800/50 px-5 py-1.5 rounded-full backdrop-blur-md mx-auto w-fit border border-white/20 dark:border-slate-700/30">
+<span class="material-icons-round text-secondary text-sm">verified</span>
+                    Seçtiğiniz Yemeği Gösteriyor
+                </p>
+</div>
+<div class="hidden md:block w-32"></div>
+</header>
+
+<section class="max-w-3xl mx-auto w-full mb-16" id="filter-bar">
+<div class="bg-white/90 dark:bg-slate-800/90 glass-panel p-2 rounded-2xl shadow-xl border border-white/40 dark:border-slate-700/50">
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-icons-round">search</span>
+</span>
+<input id="searchInput" class="w-full bg-transparent border-none focus:ring-0 pl-12 pr-4 py-4 text-lg text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl transition-all" placeholder="Yemek adı veya restoran ara..." type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-icons-round">tune</span>
+</button>
+</div>
+</div>
+<div class="flex flex-wrap justify-center gap-4 mt-6">
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only status-check" type="checkbox" value="tum"/>
+<div class="px-5 py-2 rounded-full border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary shadow-sm hover:shadow-md transition-all flex items-center gap-2 select-none">
+<span class="material-icons-round text-sm opacity-0 peer-checked:opacity-100 -ml-2 peer-checked:ml-0 transition-all duration-300 w-0 peer-checked:w-auto overflow-hidden">check</span>
+                        Tümü
+                    </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only status-check" type="checkbox" value="hazir"/>
+<div class="px-5 py-2 rounded-full border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary shadow-sm hover:shadow-md transition-all flex items-center gap-2 select-none">
+<span class="material-icons-round text-sm opacity-0 peer-checked:opacity-100 -ml-2 peer-checked:ml-0 transition-all duration-300 w-0 peer-checked:w-auto overflow-hidden">check</span>
+                        Hazır
+                    </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only status-check" type="checkbox" value="yakinda"/>
+<div class="px-5 py-2 rounded-full border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary shadow-sm hover:shadow-md transition-all flex items-center gap-2 select-none">
+<span class="material-icons-round text-sm opacity-0 peer-checked:opacity-100 -ml-2 peer-checked:ml-0 transition-all duration-300 w-0 peer-checked:w-auto overflow-hidden">check</span>
+                        Yakında
+                    </div>
+</label>
+</div>
+</section>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12" id="foodContainer">
+<% foods.forEach(food => { %>
+<%
+    let durationSeconds = 0;
+    let isYakindaDesc = false;
+    let showTimer = false;
+    let descLower = food.description ? food.description.toLowerCase() : '';
+    // Açıklama metninde süre ifadesi varsa (örn: "15 dakika sonra") saniyeyi hesapla
+    if (descLower.includes('yakında') || descLower.includes('pişiyor') || descLower.includes('hazırlanıyor') || descLower.includes('dakika') || descLower.includes('dk') || descLower.includes('saat') || descLower.includes('sonra')) {
+        isYakindaDesc = true;
+        const timeMatch = descLower.match(/(\d+)\s*(dakika|dk|saat)/);
+        if (timeMatch) {
+            const val = parseInt(timeMatch[1]);
+            const unit = timeMatch[2];
+            durationSeconds = (unit === 'saat') ? val * 3600 : val * 60;
+            showTimer = true;
+        }
+    }
+    
+    let derivedStatus = food.status;
+    if (food.status !== 'alindi' && (isYakindaDesc || durationSeconds > 0)) {
+        derivedStatus = 'yakinda';
+    }
+
+    // Eğer durum 'yakinda' ise ve süre belirtilmemişse, 1 saat içinde rastgele bir süre ata
+    if (derivedStatus === 'yakinda' && durationSeconds === 0) {
+        durationSeconds = Math.floor(Math.random() * 3600) + 1;
+    }
+%>
+<article class="card group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-slate-100 dark:border-slate-700/50 flex flex-col h-full ring-1 ring-slate-900/5 dark:ring-white/5" data-food="<%= food.name %>" data-english="<%= food.english_name %>" data-restaurant="Restoran" data-status="<%= derivedStatus %>" data-id="<%= food.id %>">
+<div class="relative h-64 overflow-hidden">
+<img alt="<%= food.name %>" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" src="<%= food.image %>"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+<div class="absolute top-4 right-4 z-10">
+<% 
+    let badgeClass = 'bg-secondary/90';
+    if (derivedStatus === 'yakinda') {
+        badgeClass = 'bg-amber-500/90';
+    } else if (derivedStatus === 'alindi') {
+        badgeClass = 'bg-slate-500/90';
+    }
+%>
+<span class="<%= badgeClass %> backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 badge <%= derivedStatus %> ring-1 ring-white/20">
+<% if (derivedStatus === 'yakinda') { %>
+    <% if (durationSeconds > 0) { %>
+<span class="material-icons-round text-sm">hourglass_empty</span> Yakında
+    <% } else { %>
+<span class="material-icons-round text-sm">schedule</span> Yakında
+    <% } %>
+<% } else if(derivedStatus === 'hazir') { %>
+<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+Hazır
+<% } else { %>
+<span class="material-icons-round text-sm">check_circle</span> Alındı
+<% } %>
+</span>
+</div>
+<% if (durationSeconds > 0) { %>
+<% if (showTimer) { %>
+<div class="absolute bottom-4 left-4 z-10 w-[calc(100%-2rem)]">
+    <div class="px-3 py-2 bg-white/10 backdrop-blur-md text-white text-xs font-bold rounded-xl shadow-lg flex items-center justify-between border border-white/20 countdown-timer" data-seconds="<%= durationSeconds %>">
+        <div class="flex items-center gap-2">
+            <span class="material-icons-round text-sm text-amber-400">timer</span>
+            <span>Hazırlanıyor</span>
+        </div>
+        <span class="time-display font-mono tracking-wider bg-black/30 px-2 py-0.5 rounded-lg">...</span>
+    </div>
+</div>
+<% } else { %>
+<div class="hidden countdown-timer" data-seconds="<%= durationSeconds %>"></div>
+<% } %>
+<% } %>
+</div>
+<div class="p-5 flex flex-col flex-grow relative">
+<div class="mb-4">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white font-display mb-1 leading-tight group-hover:text-primary transition-colors line-clamp-1"><%= food.name %></h3>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-icons-round text-base text-primary/70">store</span>
+<span class="font-medium">Restoran</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-5">
+<div class="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-2.5 border border-slate-100 dark:border-slate-700 flex items-center gap-2.5 group/info transition-colors">
+<div class="w-8 h-8 rounded-full bg-white dark:bg-slate-600 flex items-center justify-center shadow-sm text-primary">
+<span class="material-icons-round text-base">location_on</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Konum</span>
+<span class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate location-val"><%= food.lokasyon %></span>
+</div>
+</div>
+<div class="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-2.5 border border-slate-100 dark:border-slate-700 flex items-center gap-2.5 group/info transition-colors">
+<div class="w-8 h-8 rounded-full bg-white dark:bg-slate-600 flex items-center justify-center shadow-sm text-blue-500">
+<span class="material-icons-round text-base">schedule</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Süre</span>
+<span class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate time-val"><%= food.zaman %></span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50 flex flex-col gap-3 card-foot">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Durum</span>
+<span class="text-xs font-bold text-slate-900 dark:text-white status-text"><%= derivedStatus === 'alindi' ? 'Alındı' : (derivedStatus === 'yakinda' ? 'Saat İçinde Hazır' : 'Hemen Alınabilir') %></span>
+</div>
+<form action="/take-food" method="post" class="w-full">
+<input type="hidden" name="id" value="<%= food.id %>">
+<input type="hidden" name="miktar" value="1">
+<button type="submit" class="hemen-al-btn w-full bg-primary hover:bg-blue-600 text-white py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 group/btn disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:bg-slate-300 dark:disabled:bg-slate-700" <%= (derivedStatus !== 'hazir') ? 'disabled' : '' %>>
+                            Hemen Al
+                            <span class="material-icons-round text-lg group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+</div>
+</div>
+</article>
+<% }); %>
+</div>
+
+<div class="text-center mt-4 mb-16">
+<button class="inline-flex items-center gap-2 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                Daha Fazla Göster
+                <span class="material-icons-round">expand_more</span>
+</button>
+</div>
+<footer class="mt-auto py-6 border-t border-slate-200/50 dark:border-slate-800/50 text-center backdrop-blur-sm bg-white/30 dark:bg-black/30">
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                © 2025 Yemek İsrafını Azaltan Web Platformu | <a class="hover:text-primary transition-colors" href="#">Telif Hakkı</a>
+</p>
+</footer>
+</div>
+<button class="fixed bottom-6 right-6 z-50 p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-icons-round block dark:hidden">dark_mode</span>
+<span class="material-icons-round hidden dark:block">light_mode</span>
+</button>
+
+<div id="detailModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300">
+  <div class="modal-content bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl p-0 rounded-[2.5rem] shadow-2xl shadow-black/50 max-w-md w-[90%] flex flex-col relative transform transition-all scale-100 border border-white/20 dark:border-slate-700 overflow-hidden ring-1 ring-black/5">
+    <div class="relative w-full h-80 overflow-hidden group">
+        <img id="foodImg" src="" alt="Yemek Fotoğrafı" class="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-90"></div>
+        <div class="absolute bottom-0 left-0 w-full p-8 z-20 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-blue-200 text-xs font-bold mb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                Sipariş Detayı
+            </div>
+            <h1 id="foodName" class="text-4xl font-display font-bold text-white leading-tight mb-2 drop-shadow-lg tracking-tight"></h1>
+            <div class="flex items-center gap-2 text-slate-200">
+                 <div class="p-1.5 bg-white/10 rounded-full backdrop-blur-sm">
+                    <span class="material-icons-round text-primary text-sm">store</span>
+                 </div>
+                 <p id="restaurantName" class="font-medium text-base tracking-wide"></p>
+            </div>
+        </div>
+        <button onclick="closeModal()" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-black/20 hover:bg-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 border border-white/10 z-30 group/close">
+            <span class="material-icons-round group-hover/close:rotate-90 transition-transform duration-300">close</span>
+        </button>
+    </div>
+    
+    <div class="p-8 pt-6 space-y-6 bg-gradient-to-b from-transparent to-slate-50/50 dark:to-slate-900/50">
+        <div id="successMessage" class="hidden transform transition-all duration-500 ease-out translate-y-4 opacity-0">
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 rounded-2xl flex items-center gap-4 shadow-sm">
+                <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-800/50 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                    <span class="material-icons-round text-2xl">check_circle</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-green-800 dark:text-green-300 text-base">Sipariş Alındı!</h4>
+                    <p class="text-sm text-green-600 dark:text-green-400">Afiyet olsun, yemeğiniz hazırlanıyor.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 group/item hover:border-primary/30">
+                <div class="flex flex-col gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 group-hover/item:scale-110 transition-transform duration-300">
+                    <span class="material-icons-round">location_on</span>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Teslimat Konumu</p>
+                    <p id="distance" class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate"></p>
+                </div>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 group/item hover:border-orange-500/30">
+                <div class="flex flex-col gap-3">
+                    <div class="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-500 group-hover/item:scale-110 transition-transform duration-300">
+                    <span class="material-icons-round">schedule</span>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Tahmini Süre</p>
+                    <p id="time" class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate"></p>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 text-center mt-4">
+            <p class="text-xs text-blue-600 dark:text-blue-300 font-bold uppercase tracking-wider mb-1">Teslimat PIN Kodu</p>
+            <p id="pinCodeDisplay" class="text-3xl font-black text-blue-700 dark:text-blue-200 tracking-widest font-mono">----</p>
+            <p class="text-[10px] text-blue-500/70 dark:text-blue-400/70 mt-1">Yemeği teslim alırken bu kodu gösterin</p>
+        </div>
+        
+        <button onclick="closeModal()" class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-slate-200 dark:shadow-none transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group/btn">
+            <span>Tamam</span>
+            <span class="material-icons-round text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+        </button>
+    </div>
+  </div>
+</div>
+
+<div id="ratingModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300">
+  <div class="modal-content bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-2xl max-w-md w-[90%] flex flex-col gap-5 relative transform transition-all scale-100 border border-white/20 dark:border-slate-700 text-center">
+    <div class="w-16 h-16 mx-auto bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center text-primary mb-1">
+        <span class="material-icons-round text-3xl">rate_review</span>
+    </div>
+    
+    <div>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white font-display mb-2">Nasıl Buldunuz?</h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">Deneyiminizi puanlayarak bize yardımcı olun.</p>
+    </div>
+    
+    <div class="rating flex justify-center gap-2 my-2">
+      <span class="star material-icons-round text-4xl text-amber-400 cursor-pointer transition-all hover:scale-110 hover:text-amber-300" style="opacity: 0.3" data-value="1">star</span>
+      <span class="star material-icons-round text-4xl text-amber-400 cursor-pointer transition-all hover:scale-110 hover:text-amber-300" style="opacity: 0.3" data-value="2">star</span>
+      <span class="star material-icons-round text-4xl text-amber-400 cursor-pointer transition-all hover:scale-110 hover:text-amber-300" style="opacity: 0.3" data-value="3">star</span>
+      <span class="star material-icons-round text-4xl text-amber-400 cursor-pointer transition-all hover:scale-110 hover:text-amber-300" style="opacity: 0.3" data-value="4">star</span>
+      <span class="star material-icons-round text-4xl text-amber-400 cursor-pointer transition-all hover:scale-110 hover:text-amber-300" style="opacity: 0.3" data-value="5">star</span>
+    </div>
+
+    <textarea id="ratingComment" placeholder="Yorumunuzu buraya yazın..." rows="3" class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-slate-700 dark:text-slate-200 placeholder-slate-400 resize-none text-sm font-medium"></textarea>
+    
+    <div class="grid grid-cols-2 gap-3 mt-2">
+      <button onclick="closeRatingModal()" class="py-3.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+        Vazgeç
+      </button>
+      <button id="submitRating" class="py-3.5 rounded-xl font-bold text-white bg-primary hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5">
+        Gönder
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  © 2025 Yemek İsrafını Azaltan Web Platformu | Telif Hakkı
+</footer>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const cards = document.querySelectorAll('.card');
+const checkboxes = document.querySelectorAll('.status-check');
+const tumCheckbox = document.querySelector('input[value="tum"]');
+
+function applyFilters() {
+  const query = searchInput.value.toLowerCase();
+  const selectedStatuses = Array.from(checkboxes)
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  cards.forEach(card => {
+    const food = card.dataset.food.toLowerCase();
+    const restaurant = card.dataset.restaurant.toLowerCase();
+    const status = card.dataset.status.toLowerCase();
+    const matchesSearch = food.includes(query) || restaurant.includes(query);
+    const matchesFilter = selectedStatuses.includes('tum') || selectedStatuses.includes(status);
+    card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+  });
+}
+
+checkboxes.forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (cb.value === 'tum' && cb.checked) checkboxes.forEach(other => { if (other.value !== 'tum') other.checked = false; });
+    else if (cb.value !== 'tum' && cb.checked) tumCheckbox.checked = false;
+    else if (!Array.from(checkboxes).some(c => c.checked)) tumCheckbox.checked = true;
+    applyFilters();
+  });
+});
+
+searchInput.addEventListener('input', applyFilters);
+applyFilters();
+
+const modal = document.getElementById('detailModal');
+const foodImg = document.getElementById('foodImg');
+const foodName = document.getElementById('foodName');
+const restaurantName = document.getElementById('restaurantName');
+const distance = document.getElementById('distance');
+const time = document.getElementById('time');
+
+function closeModal() {
+  modal.style.display = 'none';
+}
+
+function showRatingModal(foodId) {
+  const ratingModal = document.getElementById('ratingModal');
+  ratingModal.style.display = 'flex';
+  let selectedRating = 0;
+  const stars = ratingModal.querySelectorAll('.star');
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.dataset.value);
+      stars.forEach(s => s.style.opacity = parseInt(s.dataset.value) <= selectedRating ? '1' : '0.3');
+    });
+  });
+  document.getElementById('submitRating').onclick = () => {
+    if (selectedRating > 0) {
+      // Admin paneli için yorumu kaydet
+      const commentText = document.getElementById('ratingComment').value;
+      const reviews = JSON.parse(localStorage.getItem('foodReviews') || '[]');
+      const card = document.querySelector(`.card[data-id="${foodId}"]`);
+      const foodName = card ? card.dataset.food : 'Bilinmeyen Yemek';
+      const currentUser = localStorage.getItem('currentUserEmail') || 'Anonim';
+
+      reviews.push({
+          user: currentUser,
+          food: foodName,
+          rating: selectedRating,
+          comment: commentText,
+          date: new Date().toLocaleString('tr-TR')
+      });
+      localStorage.setItem('foodReviews', JSON.stringify(reviews));
+
+      fetch('/add-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          food_id: foodId,
+          rating: selectedRating,
+          comment: document.getElementById('ratingComment').value
+        })
+      }).then(response => response.text()).then(result => {
+        alert(result);
+        closeRatingModal();
+      });
+    } else {
+      alert('Lütfen puan verin.');
+    }
+  };
+}
+
+function closeRatingModal() {
+  document.getElementById('ratingModal').style.display = 'none';
+}
+
+cards.forEach(card => {
+  const button = card.querySelector('.hemen-al-btn');
+  const status = card.dataset.status;
+  const foodId = card.dataset.id;
+
+  // LocalStorage kontrolü (Sayfa yenilendiğinde hatırlaması için)
+  const currentUserEmail = localStorage.getItem('currentUserEmail');
+  const storageKey = currentUserEmail ? `takenFoods_${currentUserEmail}` : 'takenFoods';
+  const takenFoods = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  if (takenFoods.includes(foodId)) {
+    button.disabled = true;
+    card.dataset.status = 'alindi';
+    // Update badge style for 'alindi'
+    card.querySelector('.badge').className = 'bg-slate-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 badge alindi';
+    card.querySelector('.badge').textContent = 'Alındı';
+    card.querySelector('.status-text').textContent = 'Alındı';
+    const timer = card.querySelector('.countdown-timer');
+    if (timer) {
+      const wrapper = timer.closest('.absolute.bottom-4');
+      if (wrapper) wrapper.remove();
+      else timer.remove();
+    }
+  } else {
+    const timer = card.querySelector('.countdown-timer');
+    const seconds = timer ? parseInt(timer.dataset.seconds) : 0;
+    button.disabled = status !== 'hazir' || seconds > 0;
+  }
+
+  button.addEventListener('click', (e) => {
+    if(!button.disabled){
+      e.preventDefault(); // Formun sayfayı yenilemesini engelle
+
+      foodImg.src = card.querySelector('img').src;
+      foodName.textContent = card.dataset.english;
+      restaurantName.textContent = 'Restoran: ' + card.dataset.restaurant;
+      distance.textContent = card.querySelector('.location-val').textContent.trim();
+      time.textContent = card.querySelector('.time-val').textContent.trim();
+      
+      // Random 4 haneli PIN oluştur
+      const pinCode = Math.floor(1000 + Math.random() * 9000);
+      const pinDisplay = document.getElementById('pinCodeDisplay');
+      if(pinDisplay) pinDisplay.textContent = pinCode;
+
+      modal.style.display = 'flex';
+
+      const successMsg = document.getElementById('successMessage');
+      if(successMsg) {
+          successMsg.classList.remove('hidden');
+          void successMsg.offsetWidth; // Trigger reflow
+          successMsg.classList.remove('translate-y-4', 'opacity-0');
+      }
+
+      setTimeout(() => {
+        if(successMsg) {
+            successMsg.classList.add('translate-y-4', 'opacity-0');
+            setTimeout(() => successMsg.classList.add('hidden'), 500);
+        }
+        // Puanlama modal'ı aç
+        showRatingModal(card.dataset.id);
+      }, 3000);
+
+      button.disabled = true;
+      card.dataset.status = 'alindi';
+      
+      // Kartı otomatik sil (Fade-out efekti ile)
+      setTimeout(() => {
+          card.style.transition = 'all 0.5s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.9)';
+          setTimeout(() => {
+              card.remove();
+              // Eğer hiç kart kalmadıysa bilgi mesajı gösterilebilir (Opsiyonel)
+              if (document.querySelectorAll('.card').length === 0) {
+                  const container = document.getElementById('foodContainer');
+                  if(container) container.innerHTML = '<div class="col-span-full text-center text-slate-500 dark:text-slate-400 py-10">Gösterilecek yemek kalmadı.</div>';
+              }
+          }, 500);
+      }, 500); // Kullanıcı butona bastıktan hemen sonra işlem başlasın
+
+      const timer = card.querySelector('.countdown-timer');
+      if (timer) {
+        const wrapper = timer.closest('.absolute.bottom-4');
+        if (wrapper) wrapper.remove();
+        else timer.remove();
+      }
+
+      // LocalStorage'a kaydet
+      const currentUserEmail = localStorage.getItem('currentUserEmail');
+      const storageKey = currentUserEmail ? `takenFoods_${currentUserEmail}` : 'takenFoods';
+      const currentTaken = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      if (foodId && !currentTaken.includes(foodId)) {
+        currentTaken.push(foodId);
+        localStorage.setItem(storageKey, JSON.stringify(currentTaken));
+      }
+
+      // Admin paneli için işlem kaydı (Kullanıcı İşlemleri)
+      const currentUser = localStorage.getItem('currentUserEmail') || 'Misafir Kullanıcı';
+      const claims = JSON.parse(localStorage.getItem('foodClaims') || '[]');
+      claims.push({
+          user: currentUser,
+          food: card.dataset.food,
+          date: new Date().toLocaleString('tr-TR'),
+          pin: pinCode
+      });
+      localStorage.setItem('foodClaims', JSON.stringify(claims));
+
+      // Yemek verenler sayfası için porsiyon azaltma sinyali gönder
+      localStorage.setItem('food_update_signal', JSON.stringify({
+          id: foodId,
+          timestamp: Date.now()
+      }));
+
+      // Sunucuya isteği gönder
+      fetch('/take-food', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `id=${encodeURIComponent(foodId)}&miktar=1`
+      }).catch(err => console.error(err));
+    }
+  });
+});
+
+// Sayfa yüklendiğinde sayaçları localStorage ile senkronize et
+document.querySelectorAll('.countdown-timer').forEach(el => {
+    const card = el.closest('.card');
+    if (!card) return;
+    const foodId = card.dataset.id;
+    const storageKey = 'timer_end_' + foodId;
+    
+    let endTime = localStorage.getItem(storageKey);
+    let seconds = parseInt(el.dataset.seconds);
+
+    if (!endTime) {
+        endTime = Date.now() + (seconds * 1000);
+        localStorage.setItem(storageKey, endTime);
+    } else {
+        const remaining = Math.ceil((parseInt(endTime) - Date.now()) / 1000);
+        seconds = remaining > 0 ? remaining : 0;
+        el.dataset.seconds = seconds;
+    }
+    
+    // Check if expired immediately on load
+    if (seconds <= 0 && card.dataset.status !== 'alindi') {
+         el.innerHTML = '<span class="material-icons-round text-sm">check_circle</span> Hazır!';
+         const btn = card.querySelector('.hemen-al-btn');
+         if (btn) btn.disabled = false;
+         
+         const badge = card.querySelector('.badge');
+         if (badge) {
+             badge.className = 'bg-secondary/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 badge hazir';
+             badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Hazır';
+         }
+         
+         const statusText = card.querySelector('.status-text');
+         if(statusText) statusText.textContent = 'Hemen Alınabilir';
+    } else if (seconds > 0) {
+        const m = Math.floor(seconds / 60);
+        if (el.querySelector('.time-display')) {
+             el.querySelector('.time-display').innerText = `${m}dk ${seconds % 60}sn`;
+        }
+    }
+});
+
+// Geri Sayım Sayacı Mantığı
+setInterval(() => {
+    document.querySelectorAll('.countdown-timer').forEach(el => {
+        let seconds = parseInt(el.dataset.seconds);
+        
+        if (seconds > 0) {
+            seconds--;
+            el.dataset.seconds = seconds;
+            
+            if (seconds <= 0) {
+                // Süre dolduğunda
+                el.innerHTML = '<span class="material-icons-round text-sm">check_circle</span> Hazır!';
+                el.classList.remove('bg-slate-900/80');
+                el.classList.add('bg-emerald-600');
+                
+                // Sayacı biten kartın butonunu aktif et
+                const card = el.closest('.card');
+                if (card) {
+                    const btn = card.querySelector('.hemen-al-btn');
+                    // Eğer buton daha önce alınmamışsa (disabled ve status alindi değilse) aktif et
+                    if (btn && btn.disabled && card.dataset.status !== 'alindi') {
+                        btn.disabled = false;
+                        card.dataset.status = 'hazir';
+                        
+                        // Durum metnini güncelle
+                        const statusText = card.querySelector('.status-text');
+                        if (statusText) statusText.textContent = 'Hemen Alınabilir';
+                        
+                        // Rozeti güncelle
+                        const badge = card.querySelector('.badge');
+                        if (badge) {
+                            badge.className = 'bg-secondary/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 badge hazir';
+                            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Hazır';
+                        }
+                    }
+                }
+            } else {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                el.querySelector('.time-display').innerText = `${m}dk ${s}sn`;
+            }
+        }
+    });
+}, 1000);
+</script>
+</body>
+</html>

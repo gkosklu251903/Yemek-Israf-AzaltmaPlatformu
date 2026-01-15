@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yemek İsrafını Azaltan Platform</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn-back {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background-color: #2196F3;
+    color: white;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: none;
+  }
+  .btn-back:hover { background-color: #1976D2; transform: translateY(-2px); }
+
+  .overlay-box {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 40px 60px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+  }
+
+  h1 { font-size: 28px; font-weight: bold; margin-bottom: 15px; text-shadow: 2px 2px 5px rgba(0,0,0,0.7);}
+  p { font-size: 16px; margin-bottom: 30px; text-shadow: 1px 1px 4px rgba(0,0,0,0.6);}
+
+  .button-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  button, .btn-next {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .btn-orange {
+    background-color: #ff9800;
+    color: white;
+    box-shadow: 0 0 10px rgba(255,152,0,0.4);
+  }
+  .btn-orange:hover { background-color: #e68900; transform: scale(1.05); box-shadow: 0 0 20px rgba(255,152,0,0.7); }
+
+  .btn-gray {
+    background-color: #e0e0e0;
+    color: #333;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  }
+  .btn-gray:hover { background-color: #c9c9c9; transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+
+  .btn-green {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    display: none;
+    width: 100%; 
+    font-size: 18px;
+  }
+  .btn-green:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6); }
+
+  footer { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 14px; color: #fffbfb; }
+
+  .spinner {
+    display: none;
+    width: 20px; height: 20px;
+    border: 3px solid #ffffff; border-top: 3px solid transparent;
+    border-radius: 50%; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  #status-text { margin-top: 20px; font-size: 15px; font-weight: 500; display: none; }
+
+  #manual-panel {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+    z-index: 9999;
+  }
+  #manual-panel .panel-box {
+    background: linear-gradient(145deg, #ffffff, #f9f9f9);
+    color: #222;
+    padding: 40px 30px;
+    border-radius: 25px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+    transform: scale(0.9);
+    animation: panelPop 0.25s ease forwards;
+    border: 2px solid rgba(76,175,80,0.2);
+  }
+  #manual-panel h2 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2E7D32;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+  }
+  .slider-container {
+    margin: 20px 0;
+    text-align: left;
+  }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+  }
+  input[type=range] {
+    width: 100%;
+    margin: 10px 0;
+  }
+  #manual-address {
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.25s ease;
+  }
+  #manual-address:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 10px rgba(76,175,80,0.3);
+  }
+  #manual-confirm, #manual-cancel {
+    margin-top: 20px;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  #manual-confirm {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    box-shadow: 0 5px 15px rgba(76,175,80,0.4);
+  }
+  #manual-confirm:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(76,175,80,0.6);
+  }
+  #manual-cancel {
+    background: linear-gradient(135deg, #E53935, #B71C1C);
+    color: white;
+    box-shadow: 0 5px 15px rgba(217,83,79,0.4);
+  }
+  #manual-cancel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(217,83,79,0.6);
+  }
+
+  #map-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #map-container {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 900px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #map-header {
+    padding: 20px;
+    background: #2E7D32;
+    color: white;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #map-header h2 {
+    margin: 0;
+  }
+
+  #close-map {
+    background: red;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  #mapBox {
+    flex: 1;
+    position: relative;
+  }
+
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes panelPop { from { transform: scale(0.8); opacity:0; } to { transform: scale(1); opacity:1; } }
+
+</style>
+<script>
+    // Sayfa bfcache'den (back-forward cache) yüklendiyse sayfayı yenile
+    // Bu, çıkış yaptıktan sonra geri butonuna basıldığında sunucu kontrolünü zorunlu kılar
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+</script>
+</head>
+<body>
+
+  <a href="#" onclick="handleLogout()" class="btn-back" style="background-color: #ef4444;"><span>&#10006;</span> Çıkış Yap</a>
+
+  <div class="overlay-box">
+    
+    <div id="step-1">
+        <h1>Yakınınızdaki Yemekleri Görmek İster misiniz?</h1>
+        <p>Size en yakın artan yemekleri anında listelemek için konum izninizi istiyoruz.</p>
+
+        <div class="button-container">
+          <button class="btn-orange" id="btn-share">
+            <span class="spinner" id="loading-spinner"></span>
+            <span>📍 Konumumu Paylaş (Önerilen)</span>
+          </button>
+          
+          <button class="btn-gray" id="btn-manual">
+            🗺️ Konumu Manuel Gir
+          </button>
+        </div>
+    </div>
+
+    <div id="step-2" style="display: none;">
+        <h1 style="color: #4CAF50;">Konum Başarıyla Alındı! ✅</h1>
+        <p>Haritada konumunuzu doğruladıysanız, çevrenizdeki lezzetli yemekleri listelemeye hazırsınız.</p>
+        
+        <button class="btn-next btn-green" style="display: flex;" id="listeleBtn">
+            🍲 Yemekleri Listele
+            <span>&#8594;</span>
+        </button>
+    </div>
+    
+    <div id="status-text"></div>
+  </div>
+
+  <footer>© 2025 Yemek İsrafını Azaltan Web Platformu | Telif Hakkı</footer>
+
+  <!-- Harita Modal Panel -->
+  <div id="map-panel">
+    <div id="map-container">
+      <div id="map-header">
+        <h2>📍 Yakındaki Yemekler</h2>
+        <button id="close-map">✕ Kapat</button>
+      </div>
+      <div id="mapBox"></div>
+      <!-- Seçilen Yemeği Göster -->
+      <div id="selected-food-panel" style="display: none; padding: 15px; background: #f0f0f0; border-top: 2px solid #ddd; color: #333;">
+        <div style="text-align: center;">
+          <h3 id="selected-food-name" style="margin: 0 0 10px 0; color: #2E7D32;">Seçilen Yemek</h3>
+          <p id="selected-food-info" style="margin: 5px 0; font-size: 14px;"></p>
+          <button id="go-to-food-btn" style="margin-top: 10px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            🍽️ Bu Yemeğe Git
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4QccATRbpQNwfaWhbVrVesLg6kgaINco&libraries=marker"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const btnShare = document.getElementById('btn-share');
+    const btnManual = document.getElementById('btn-manual');
+    const statusText = document.getElementById('status-text');
+    const spinner = document.getElementById('loading-spinner');
+    
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+
+    let userLat = null;
+    let userLng = null;
+    let map = null;
+    let foodMarkers = [];
+    let selectedFood = null;
+
+    // Haversine Formülü ile iki nokta arası mesafe hesaplama (km)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Dünya yarıçapı (km)
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const d = R * c;
+        return d;
+    }
+
+    // Yemekleri getir
+    async function loadFoodsData() {
+        try {
+            const response = await fetch('/api/foods');
+            const foods = await response.json();
+            return foods;
+        } catch (error) {
+            console.error('Yemekler yüklenemedi:', error);
+            return [];
+        }
+    }
+
+    // Harita üzerinde yemekleri göster
+    function displayFoodsOnMap(foods) {
+        // Önceki markerları kaldır
+        foodMarkers.forEach(marker => marker.setMap(null));
+        foodMarkers = [];
+
+        const currentUserEmail = localStorage.getItem('currentUserEmail');
+        const storageKey = currentUserEmail ? `takenFoods_${currentUserEmail}` : 'takenFoods';
+        const takenFoods = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+        foods.forEach(food => {
+            // Eğer yemek alındıysa haritada gösterme
+            if (food.status === 'alindi') return;
+
+            // LocalStorage kontrolü (istemci tarafında alınanlar)
+            if (food.id !== undefined && takenFoods.includes(String(food.id))) return;
+
+            // Lokasyondan koordinatları çıkarmayı dene
+            if (food.lokasyon) {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address: food.lokasyon }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        const lat = results[0].geometry.location.lat();
+                        const lng = results[0].geometry.location.lng();
+                        
+                        // Mesafe kontrolü
+                        let distance = 0;
+                        let showMarker = true;
+                        
+                        if (userLat && userLng) {
+                            distance = calculateDistance(userLat, userLng, lat, lng);
+                            const maxRadius = parseFloat(localStorage.getItem('searchRadius')) || 20; // Varsayılan 20km
+                            
+                            if (distance > maxRadius) {
+                                showMarker = false;
+                            }
+                        }
+
+                        if (showMarker) {
+                            // Custom marker oluştur
+                            const marker = new google.maps.Marker({
+                                position: { lat, lng },
+                                map: map,
+                                title: food.name,
+                                icon: {
+                                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                                    fillColor: '#F44336',
+                                    fillOpacity: 1,
+                                    strokeColor: '#fff',
+                                    strokeWeight: 2,
+                                    scale: 2,
+                                    anchor: new google.maps.Point(12, 22)
+                                }
+                            });
+
+                            // InfoWindow ekle
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: `
+                                    <div style="color: #333; padding: 10px; font-family: Arial;">
+                                        <h3 style="margin: 0 0 5px 0;">🍽️ ${food.name}</h3>
+                                        <p style="margin: 3px 0;"><strong>📍 Lokasyon:</strong> ${food.lokasyon}</p>
+                                        <p style="margin: 3px 0;"><strong>📏 Mesafe:</strong> ${distance.toFixed(1)} km</p>
+                                        <p style="margin: 3px 0;"><strong>⚖️ Miktar:</strong> ${food.miktar}</p>
+                                        <p style="margin: 3px 0;"><strong>⏰ Son Tüketim:</strong> ${food.zaman}</p>
+                                        <p style="margin: 3px 0;"><strong>📝 Açıklama:</strong> ${food.description}</p>
+                                    </div>
+                                `
+                            });
+
+                            marker.addListener('click', () => {
+                                selectedFood = food;
+                                infoWindow.open(map, marker);
+                                
+                                document.getElementById('selected-food-name').textContent = food.name;
+                                document.getElementById('selected-food-info').innerHTML = `
+                                    <strong>📍 Lokasyon:</strong> ${food.lokasyon}<br>
+                                    <strong>📏 Mesafe:</strong> ${distance.toFixed(1)} km<br>
+                                    <strong>⚖️ Miktar:</strong> ${food.miktar}<br>
+                                    <strong>⏰ Tahmini:</strong> ${food.zaman}
+                                `;
+                                document.getElementById('selected-food-panel').style.display = 'block';
+                            });
+
+                            foodMarkers.push(marker);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Harita başlat
+    function initMap(lat, lng) {
+        map = new google.maps.Map(document.getElementById('mapBox'), {
+            zoom: 13,
+            center: { lat, lng },
+            mapTypeControl: true,
+            fullscreenControl: true
+        });
+
+        // Kullanıcı konumunu işaretle
+        const userMarker = new google.maps.Marker({
+            position: { lat, lng },
+            map: map,
+            title: 'Sizin Konumunuz',
+            icon: {
+                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                fillColor: '#2196F3',
+                fillOpacity: 1,
+                strokeColor: '#fff',
+                strokeWeight: 2,
+                scale: 2,
+                anchor: new google.maps.Point(12, 22)
+            }
+        });
+
+        const userInfoWindow = new google.maps.InfoWindow({
+            content: '<div style="color: #333; font-weight: bold; padding: 5px;">📍 Buradasınız</div>'
+        });
+
+        userMarker.addListener('click', () => {
+            userInfoWindow.open(map, userMarker);
+        });
+
+        // Yemekleri yükle ve göster
+        loadFoodsData().then(foods => {
+            displayFoodsOnMap(foods);
+        });
+    }
+
+    btnShare.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            alert("Tarayıcınız konum servisini desteklemiyor.");
+            return;
+        }
+
+        spinner.style.display = 'inline-block';
+        statusText.style.display = 'block';
+        statusText.textContent = "Konum alınıyor...";
+        statusText.style.color = "#ffd700";
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLat = position.coords.latitude;
+                userLng = position.coords.longitude;
+
+                spinner.style.display = 'none';
+                statusText.style.display = 'none';
+                
+                // Konum localStorage'a kaydet
+                localStorage.setItem('userLocation', userLat + ',' + userLng);
+                localStorage.setItem('searchRadius', 20); // Varsayılan 20km
+                
+                // Harita panelini aç
+                document.getElementById('map-panel').style.display = 'flex';
+                initMap(userLat, userLng);
+
+                step1.style.display = 'none';
+                step2.style.display = 'block';
+            },
+            (error) => {
+                spinner.style.display = 'none';
+                statusText.style.display = 'block';
+                statusText.style.color = "#ff4d4d";
+                statusText.textContent = "Konum alınamadı. Lütfen manuel girişi deneyin.";
+            }
+        );
+    });
+
+    // Harita kapanır
+    document.getElementById('close-map').addEventListener('click', () => {
+        document.getElementById('map-panel').style.display = 'none';
+        // step-2 görünür kalır, "Yemekleri Listele" butonu aktif durumda
+    });
+
+    // "Bu Yemeğe Git" butonu - sadece seçili yemeği göster
+    const goToFoodBtn = document.getElementById('go-to-food-btn');
+    console.log('go-to-food-btn element:', goToFoodBtn);
+    
+    if (goToFoodBtn) {
+        goToFoodBtn.addEventListener('click', () => {
+            console.log('Bu Yemeğe Git butonuna tıklandı');
+            console.log('selectedFood:', selectedFood);
+            if (selectedFood && selectedFood.id) {
+                // Backend /yemek_listesi route'unu kullan (EJS render edilir)
+                const url = '/yemek_listesi?foodId=' + selectedFood.id;
+                console.log('Yönlendiriliyorum:', url);
+                window.location.href = url;
+            } else {
+                alert('Lütfen önce bir yemek seçiniz');
+            }
+        });
+    } else {
+        console.error('go-to-food-btn element bulunamadı!');
+    }
+
+    // Manuel konum paneli
+    const manualPanel = document.getElementById('manual-panel');
+    const manualConfirm = document.getElementById('manual-confirm');
+    const manualCancel = document.getElementById('manual-cancel');
+    const manualAddress = document.getElementById('manual-address');
+
+    btnManual.addEventListener('click', () => {
+        manualPanel.style.display = 'flex';
+        manualAddress.focus();
+    });
+
+    manualCancel.addEventListener('click', () => {
+        manualPanel.style.display = 'none';
+    });
+
+    manualConfirm.addEventListener('click', () => {
+        if(manualAddress.value.trim() === ""){
+            alert("Lütfen bir adres giriniz.");
+            return;
+        }
+
+        // Girilen adresi koordinata çevir
+        const geocoder = new google.maps.Geocoder();
+        const address = manualAddress.value.trim();
+        const radius = document.getElementById('radius-range').value;
+
+        geocoder.geocode({ address: address }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                const lat = results[0].geometry.location.lat();
+                const lng = results[0].geometry.location.lng();
+                
+                userLat = lat;
+                userLng = lng;
+
+                localStorage.setItem('userLocation', address);
+                localStorage.setItem('searchRadius', radius);
+
+                manualPanel.style.display = 'none';
+                step1.style.display = 'none';
+                step2.style.display = 'block';
+                
+                document.getElementById('map-panel').style.display = 'flex';
+                initMap(lat, lng);
+            } else {
+                alert('Adres bulunamadı. Lütfen daha açık bir adres girin.');
+            }
+        });
+    });
+
+    // Slider değişimini göster
+    const radiusRange = document.getElementById('radius-range');
+    const radiusValue = document.getElementById('radius-value');
+    if(radiusRange && radiusValue) {
+        radiusRange.addEventListener('input', (e) => {
+            radiusValue.textContent = e.target.value + ' km';
+        });
+    }
+
+    // Yemekleri Listele butonu - tüm yemekleri göster
+    document.getElementById('listeleBtn').addEventListener('click', () => {
+        console.log('Yemekleri Listele tıklandı');
+        
+        const location = localStorage.getItem('userLocation') || '';
+        console.log('userLocation:', location);
+        
+        // Backend /yemek_listesi route'unu kullan (foodId yok = tüm yemekler)
+        let url = '/yemek_listesi?lokasyon=' + encodeURIComponent(location);
+        
+        console.log('Tüm yemekleri listele:', url);
+        window.location.href = url;
+    });
+
+    // Make handleLogout globally available
+    window.handleLogout = function() {
+        const btn = document.querySelector('.btn-back');
+        if(btn) {
+            btn.innerHTML = '<span>&#8635;</span> Çıkış Yapılıyor...';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+        }
+
+        setTimeout(() => {
+            localStorage.removeItem('currentUserEmail');
+            localStorage.removeItem('foodClaims');
+            localStorage.removeItem('notificationCount');
+            localStorage.removeItem('notifications');
+            localStorage.removeItem('foodReviews');
+            localStorage.removeItem('userLocation');
+            
+            window.location.href = '/logout';
+        }, 500);
+    };
+
+    }); // DOMContentLoaded kapatma
+  </script>
+
+  <!-- Manuel Konum Paneli -->
+  <div id="manual-panel">
+    <div class="panel-box">
+      <h2>📍 Konumu Manuel Gir</h2>
+      <input id="manual-address" type="text" placeholder="Örn: Erzurum merkez ...">
+      
+      <div class="slider-container">
+        <div class="slider-label">
+            <span>Mesafe Çapı:</span>
+            <span id="radius-value">20 km</span>
+        </div>
+        <input type="range" id="radius-range" min="1" max="50" value="20">
+        <div style="font-size: 12px; color: #777;">(1 km - 50 km arası)</div>
+      </div>
+
+      <button id="manual-confirm">Onayla</button>
+      <button id="manual-cancel">İptal</button>
+    </div>
+  </div>
+
+</body>
+</html>

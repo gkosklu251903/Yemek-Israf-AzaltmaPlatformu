@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Tavuklu Pilav",
+    "image": "images/tavuk-pilav.jpg",
+    "desc": "Taze, sıcak tavuklu pilav. Acil alınmalı.",
+    "miktar": "6 porsiyon",
+    "zaman": "19:00",
+    "lokasyon": "Düzce Üniversitesi Yemekhane",
+    "status": "hazir"
+  },
+  {
+    "name": "Sebzeli Salata",
+    "image": "images/sebzeli-salata.jpg",
+    "desc": "Hazırda soğuk servis, yeşillikler taze.",
+    "miktar": "4 porsiyon",
+    "zaman": "18:30",
+    "lokasyon": "Düzce Üniversitesi Yemekhane",
+    "status": "hazir"
+  },
+  {
+    "name": "Mercimek Çorbası",
+    "image": "images/MercimekÇorbası.jpg",
+    "desc": "Sıcak çorba, kısa sürede alınmalı.",
+    "miktar": "8 porsiyon",
+    "zaman": "20:00",
+    "lokasyon": "Düzce Üniversitesi Yemekhane",
+    "status": "yakinda"
+  },
+  {
+    "name": "Kebap",
+    "image": "images/default.jpg",
+    "desc": "hazır",
+    "miktar": "3 porsiyon",
+    "zaman": "11.00",
+    "lokasyon": "merkez",
+    "status": "hazir"
+  },
+  {
+    "name": "İskender",
+    "image": "images/default.jpg",
+    "desc": "yakında",
+    "miktar": "6 porsiyon",
+    "zaman": "23.00",
+    "lokasyon": "big hill",
+    "status": "hazir"
+  },
+  {
+    "name": "döner",
+    "image": "images/default.jpg",
+    "desc": "yakında",
+    "miktar": "6 porsiyon",
+    "zaman": "23.00",
+    "lokasyon": "Erzurum",
+    "status": "hazir"
+  },
+  {
+    "name": "cağ",
+    "image": "images/default.jpg",
+    "desc": "Hazır",
+    "miktar": "3",
+    "zaman": "12.00",
+    "lokasyon": "merkez",
+    "status": "hazir"
+  },
+  {
+    "name": "Kebap",
+    "image": "images/default.jpg",
+    "desc": "Hazır",
+    "miktar": "3 porsiyon",
+    "zaman": "15.00",
+    "lokasyon": "Şükrüpaşa",
+    "status": "hazir"
+  }
+]

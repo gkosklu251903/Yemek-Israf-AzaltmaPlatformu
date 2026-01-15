@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Restaurant Panel - Add Food</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+        rel="stylesheet" />
+    <script>
+        // Sayfa bfcache'den (back-forward cache) yüklendiyse sayfayı yenile
+        // Bu, çıkış yaptıktan sonra geri butonuna basıldığında sunucu kontrolünü zorunlu kılar
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#f97316", // Orange-500
+                        secondary: "#10b981", // Emerald-500
+                        danger: "#ef4444", // Red-500
+                        "background-light": "#f3f4f6",
+                        "background-dark": "#111827",
+                        "surface-light": "rgba(255, 255, 255, 0.85)",
+                        "surface-dark": "rgba(31, 41, 55, 0.85)",
+                    },
+                    fontFamily: {
+                        display: ["Poppins", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                },
+            },
+        };
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dark .glass-panel {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal Styles (Legacy Support) */
+        #detailModal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 18px;
+            width: 90%;
+            max-width: 520px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: fadeIn .3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+        }
+
+        .modal-body h2 {
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 22px;
+            color: #111827;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .info-item span.label {
+            font-weight: 600;
+            min-width: 150px;
+            color: #374151;
+        }
+
+        .info-item span.value {
+            color: #1f2937;
+        }
+
+        .close-btn {
+            display: block;
+            margin: 20px auto 10px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Map Modal Styles */
+        .map-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .map-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-modal-header {
+            padding: 15px;
+            background: #10b981;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            font-weight: bold;
+        }
+
+        #mapBox {
+            flex: 1;
+            position: relative;
+        }
+
+        .map-modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .map-modal-footer button {
+            flex: 1;
+            padding: 10px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .map-confirm-btn {
+            background: #10b981;
+        }
+
+        .map-confirm-btn:hover {
+            opacity: 0.9;
+        }
+
+        .map-close-btn {
+            background: #999;
+        }
+
+        .map-close-btn:hover {
+            background: #777;
+        }
+    </style>
+</head>
+
+<body
+    class="font-body text-gray-800 dark:text-gray-100 min-h-screen relative selection:bg-primary selection:text-white">
+    <div class="fixed inset-0 z-0 w-full h-full overflow-hidden">
+        <img alt="Blurry restaurant food background" class="w-full h-full object-cover blur-sm scale-105"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrBClCO_oiw9ktlbsi771EgS9APll815PWi79dMHkH64_pA1IPC0E72mbKuWvBuRYJWmC_goAK3GYFBCEAQeNNMLNJUEqIWG391_dDRSes65PiAhNKyLZWveRP0uOw_f6LnFpJgV0FJfE6QR01XR6Qw7AWRWhMyjKgqUVLZ1lVS3ZsOn43DHBBXvE_WM7SR--5Y-D_VbwSn6nuj_iT595n571idKHhJWsHicgG-YAy-Ou7gIjNaSjp4y-FjR6VDLt34Y9Eoq4lPV0" />
+        <div class="absolute inset-0 bg-white/30 dark:bg-black/60"></div>
+    </div>
+    <div class="relative z-10 w-full h-full overflow-y-auto min-h-screen pb-12">
+        <div class="w-full max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+            <a href="#" onclick="handleLogout()"
+                class="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-md transition-all duration-200 transform hover:-translate-y-0.5 font-medium text-sm">
+                <span class="material-symbols-outlined text-sm">logout</span>
+                Çıkış Yap
+            </a>
+            <div class="hidden md:flex gap-4">
+                <% if (typeof user !=='undefined' && user) { %>
+                    <div
+                        class="flex items-center gap-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="bg-primary/10 p-2 rounded-full">
+                            <span class="material-symbols-outlined text-primary text-xl">person</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Giriş Yapan
+                                Kullanıcı</span>
+                            <span class="text-sm font-bold text-gray-800 dark:text-white">
+                                <%= user.email %>
+                            </span>
+                        </div>
+                    </div>
+                    <% } %>
+            </div>
+        </div>
+        <div class="max-w-4xl mx-auto px-4 text-center mb-8">
+            <span
+                class="inline-block px-6 py-2 bg-gradient-to-r from-primary to-red-500 text-white text-lg font-extrabold uppercase tracking-widest rounded-full mb-4 shadow-xl border-2 border-white/20 backdrop-blur-md transform hover:scale-105 transition-all duration-300">
+                Restoran Paneli
+            </span>
+            <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 dark:text-white mb-2 drop-shadow-md">
+                Mevcut Artan Yemek Listesi
+            </h1>
+            <p class="text-gray-700 dark:text-gray-300 font-medium drop-shadow-sm">
+                Aşağıdaki listeden mevcut artan yemekleri görüntüleyebilirsiniz.
+            </p>
+            <div class="mt-6 flex flex-col md:flex-row items-center justify-center gap-4">
+                <div class="relative w-full max-w-md group">
+                    <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 dark:text-gray-500">
+                        <span class="material-symbols-outlined">search</span>
+                    </span>
+                    <input id="searchInput"
+                        class="w-full pl-10 pr-4 py-2.5 rounded-full bg-white dark:bg-gray-800 border-none shadow-lg focus:ring-2 focus:ring-primary text-sm transition-shadow dark:text-white"
+                        placeholder="Yemek ara..." type="text" />
+                </div>
+                <div
+                    class="flex items-center gap-3 bg-white/60 dark:bg-black/40 px-4 py-2 rounded-full backdrop-blur-sm shadow-sm">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input id="tumuCheck" checked=""
+                            class="form-checkbox text-primary rounded border-gray-300 focus:ring-primary"
+                            type="checkbox" />
+                        <span class="text-sm font-medium">Tümü</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input id="hazirCheck"
+                            class="form-checkbox text-primary rounded border-gray-300 focus:ring-primary"
+                            type="checkbox" />
+                        <span class="text-sm font-medium">Hazır</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input id="yakindaCheck"
+                            class="form-checkbox text-primary rounded border-gray-300 focus:ring-primary"
+                            type="checkbox" />
+                        <span class="text-sm font-medium">Yakında</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto px-4 mb-16">
+            <div
+                class="glass-panel bg-surface-light dark:bg-surface-dark rounded-2xl p-6 md:p-8 shadow-2xl transition-all">
+                <div class="mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <h2 class="text-2xl font-display font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">add_circle</span>
+                        Yemek Ekle
+                    </h2>
+                </div>
+                <form action="/add-food" method="post" class="space-y-5">
+                    <div class="group">
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">restaurant</span>
+                            </span>
+                            <input id="yemekAdi" name="name"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent text-sm dark:text-white shadow-sm transition-all"
+                                placeholder="Yemek Adı (Örn: Mercimek Çorbası)" type="text" required />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">soup_kitchen</span>
+                            </span>
+                            <input id="miktar" name="miktar"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent text-sm dark:text-white shadow-sm"
+                                placeholder="Miktar (Örn: 2 Porsiyon)" type="text" required />
+                        </div>
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">alarm</span>
+                            </span>
+                            <input id="zaman" name="zaman"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent text-sm dark:text-white shadow-sm"
+                                placeholder="Son Tüketim" type="datetime-local" required />
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <span
+                            class="absolute top-3 left-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                            <span class="material-symbols-outlined text-[20px]">description</span>
+                        </span>
+                        <textarea id="aciklama" name="aciklama"
+                            class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent text-sm dark:text-white shadow-sm resize-none"
+                            placeholder="Açıklama (İçindekiler, ısıtma önerisi vb.)" rows="3" required></textarea>
+                    </div>
+
+                    <div class="relative">
+                        <span
+                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                            <span class="material-symbols-outlined text-[20px]">bookmark</span>
+                        </span>
+                        <select id="savedLocations"
+                            class="w-full pl-10 pr-8 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent text-sm dark:text-white shadow-sm appearance-none cursor-pointer">
+                            <option value="">Yeni Konum Gir / Haritadan Seç</option>
+                            <% if (typeof savedLocations !=='undefined' && savedLocations.length> 0) { %>
+                                <% savedLocations.forEach(loc=> { %>
+                                    <option value='<%= JSON.stringify(loc) %>'>
+                                        <%= loc.baslik || (loc.il + ' - ' + loc.ilce) %>
+                                    </option>
+                                    <% }); %>
+                                        <% } %>
+                        </select>
+                        <span
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                            <span class="material-symbols-outlined">expand_more</span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">apartment</span>
+                            </span>
+                            <input id="il"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary text-sm dark:text-white shadow-sm"
+                                placeholder="İl" type="text" />
+                        </div>
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">domain</span>
+                            </span>
+                            <input id="ilce"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary text-sm dark:text-white shadow-sm"
+                                placeholder="İlçe" type="text" />
+                        </div>
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">home_work</span>
+                            </span>
+                            <input id="mahalle"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary text-sm dark:text-white shadow-sm"
+                                placeholder="Mahalle" type="text" />
+                        </div>
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-[20px]">signpost</span>
+                            </span>
+                            <input id="sokak"
+                                class="w-full pl-10 pr-4 py-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary text-sm dark:text-white shadow-sm"
+                                placeholder="Sokak" type="text" />
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mt-2 pl-1">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" name="saveLocation" id="saveLocationCheck"
+                                class="form-checkbox text-primary rounded border-gray-300 focus:ring-primary w-4 h-4">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Bu konumu kaydet</span>
+                        </label>
+                        <input type="text" name="locationTitle" id="locationTitleInput"
+                            placeholder="Konum Başlığı (Örn: Ev, İş)"
+                            class="flex-1 py-2 px-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-primary hidden transition-all">
+                    </div>
+
+                    <input type="hidden" name="lokasyon" id="lokasyonHidden">
+                    <input type="hidden" name="image" id="hiddenImage">
+
+                    <div style="text-align: center; margin-top: 15px;">
+                        <img id="yemekGorseli" src="" alt="Yemek Görseli"
+                            style="max-width: 100%; max-height: 250px; border-radius: 12px; display: none; margin: 0 auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                    </div>
+
+                    <div class="space-y-4 pt-4">
+                        <button type="button" id="haritaBtnForm"
+                            class="w-full py-3 bg-secondary hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-200 transform active:scale-95">
+                            <span class="material-symbols-outlined">map</span>
+                            Harita ile Konum Seç
+                        </button>
+                        <button type="submit"
+                            class="w-full py-3.5 bg-primary hover:bg-orange-600 text-white font-bold text-lg rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            Yemeği Listeye Ekle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto px-4">
+            <h3 class="text-xl font-display font-semibold text-white mb-6 drop-shadow-md flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">fastfood</span>
+                Listelenen Yemekler
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="cards">
+                <% foods.forEach(food=> { %>
+                    <% 
+                        // Miktar kontrolü ve güvenli parsing
+                        let qty = 0;
+                        if(food.miktar) {
+                            // Sadece rakamları al
+                            const match = food.miktar.toString().match(/(\d+)/);
+                            if(match) {
+                                qty = parseInt(match[1]);
+                            }
+                        }
+                        
+                        if(qty > 0 && food.status !== 'alindi') {
+                        // Açıklama metnine göre durum analizi
+                        let derivedStatus = food.status;
+                        let badgeText = '';
+                        let badgeClass = '';
+                        let durationSeconds = 0;
+                        let descLower = food.description ? food.description.toLowerCase() : '';
+
+                        if (descLower.includes('yakında') || descLower.includes('pişiyor') ||
+                        descLower.includes('hazırlanıyor') || descLower.includes('dakika') || descLower.includes('dk')
+                        || descLower.includes('saat') || descLower.includes('sonra')) {
+                        derivedStatus = 'yakinda';
+                        badgeText = 'Yakında';
+                        badgeClass = 'bg-yellow-500';
+
+                        // Süre analizi (Örn: "15 dakika", "1 saat")
+                        const timeMatch = descLower.match(/(\d+)\s*(dakika|dk|saat)/);
+                        if (timeMatch) {
+                        const val = parseInt(timeMatch[1]);
+                        const unit = timeMatch[2];
+                        durationSeconds = (unit === 'saat') ? val * 3600 : val * 60;
+                        }
+
+                        } else if (descLower.includes('hazır') || descLower.includes('hemen')) {
+                        derivedStatus = 'hazir';
+                        badgeText = 'Hazır';
+                        badgeClass = 'bg-red-500';
+                        }
+                        %>
+                        <div class="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 card"
+                            data-id="<%= food.id %>" data-owner="<%= food.owner || '' %>"
+                            data-status="<%= derivedStatus %>" data-miktar="<%= food.miktar %>"
+                            data-zaman="<%= food.zaman %>" data-lokasyon="<%= food.lokasyon %>"
+                            data-name="<%= food.name %>">
+                            <div class="h-48 overflow-hidden relative">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                                <img alt="<%= food.name %>"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    src="<%= food.image %>" />
+                                <div class="absolute bottom-3 left-3 z-20 flex flex-col gap-1 items-start">
+                                    <% if (badgeText) { %>
+                                        <span
+                                            class="px-2 py-1 <%= badgeClass %> text-white text-xs font-bold rounded-md shadow-sm">
+                                            <%= badgeText %>
+                                        </span>
+                                        <% } else if (food.status==='hazir' ) { %>
+                                            <span
+                                                class="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-md shadow-sm">Hazır</span>
+                                            <% } else if (food.status==='yakinda' ) { %>
+                                                <span
+                                                    class="px-2 py-1 bg-yellow-500 text-white text-xs font-bold rounded-md shadow-sm">Yakında</span>
+                                                <% } %>
+
+                                                    <% if (durationSeconds> 0) { %>
+                                                        <div class="px-2 py-1 bg-gray-900/80 backdrop-blur-sm text-white text-xs font-bold rounded-md shadow-sm flex items-center gap-1 countdown-timer"
+                                                            data-seconds="<%= durationSeconds %>">
+                                                            <span
+                                                                class="material-symbols-outlined text-[12px]">timer</span>
+                                                            <span class="time-display">Hesaplanıyor...</span>
+                                                        </div>
+                                                        <% } %>
+                                </div>
+                            </div>
+                            <div class="p-5">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-1">
+                                    <%= food.name %>
+                                </h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 desc">
+                                    <%= food.description %>
+                                </p>
+                                <div class="flex items-center gap-2">
+                                    <form action="/request-food" method="post" class="flex-1"
+                                        onsubmit="handleTalep(event, this)">
+                                        <input type="hidden" name="id" value="<%= food.id %>">
+                                        <button type="submit"
+                                            class="w-full px-3 py-1.5 bg-secondary hover:bg-emerald-600 text-white text-xs font-semibold rounded transition-colors">Talep
+                                            Et</button>
+                                    </form>
+                                    <button
+                                        class="flex-1 px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition-colors"
+                                        onclick="onDetay(this)">Detay</button>
+                                    <form action="/delete-food" method="post">
+                                        <input type="hidden" name="index" value="<%= food.id %>">
+                                        <button type="submit"
+                                            class="px-3 py-1.5 bg-danger hover:bg-red-600 text-white text-xs font-semibold rounded transition-colors">Sil</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                            <% }); %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 transform scale-90 transition-transform duration-300">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                    <span class="material-symbols-outlined text-4xl text-green-500">check_circle</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2" id="successModalTitle">Başarılı!</h3>
+                <p class="text-gray-600 dark:text-gray-300 text-sm mb-6" id="successModalMessage">İşleminiz başarıyla gerçekleşti.</p>
+                <button onclick="closeSuccessModal()" class="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition-colors duration-200">
+                    Tamam
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img id="modalImage" src="" alt="Yemek Fotoğrafı">
+            </div>
+            <div class="modal-body">
+                <h2 id="modalTitle">Yemek Bilgisi</h2>
+                <div class="info-item"><span class="label">🍽️ Yemek Adı:</span><span class="value"
+                        id="modalYemek"></span></div>
+                <div class="info-item"><span class="label">⚖️ Miktar:</span><span class="value" id="modalMiktar"></span>
+                </div>
+                <div class="info-item"><span class="label">⏰ Son Tüketim:</span><span class="value"
+                        id="modalZaman"></span></div>
+                <div class="info-item"><span class="label">📝 Açıklama:</span><span class="value"
+                        id="modalAciklama"></span></div>
+                <div class="info-item"><span class="label">📍 Lokasyon:</span><span class="value"
+                        id="modalLokasyon"></span></div>
+                <button class="close-btn" onclick="closeModal()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4QccATRbpQNwfaWhbVrVesLg6kgaINco&libraries=places,geocoder"></script>
+    <script>
+        const UNSPLASH_ACCESS_KEY = 'lu-7lkrSgA2pwz6rP5H3ORVWQ5wG9RYkUQjNYgVqogo';
+        let map;
+        let selectedLocation = null;
+        let marker = null;
+
+        async function yemekEkleVeGorselBul(turkceYemekAdi) {
+            // HTML elemanlarını seçiyoruz
+            const yemekGorselElementi = document.getElementById('yemekGorseli');
+            const hiddenInput = document.getElementById('hiddenImage');
+
+            // 0. ADIM: Yerel images klasörünü kontrol et (Öncelik yerel dosyalarda)
+            const checkLocalImage = (path) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = path;
+                });
+            };
+
+            const extensions = ['jpg', 'png', 'jpeg', 'webp'];
+            const cleanName = turkceYemekAdi.trim();
+
+            // Olası dosya isimlerini türet (Boşluklu, bitişik, alt çizgili vb.)
+            let variations = new Set();
+            variations.add(cleanName); // Orijinal: "Kuru Fasulye"
+            variations.add(cleanName.toLowerCase()); // Küçük harf: "kuru fasulye"
+
+            if (cleanName.includes(' ')) {
+                // Boşlukları kaldır: "KuruFasulye", "kurufasulye"
+                const noSpace = cleanName.replace(/\s+/g, '');
+                variations.add(noSpace);
+                variations.add(noSpace.toLowerCase());
+
+                // Boşluk yerine alt çizgi: "Kuru_Fasulye", "kuru_fasulye"
+                const withUnderscore = cleanName.replace(/\s+/g, '_');
+                variations.add(withUnderscore);
+                variations.add(withUnderscore.toLowerCase());
+
+                // Boşluk yerine tire: "Kuru-Fasulye", "kuru-fasulye"
+                const withDash = cleanName.replace(/\s+/g, '-');
+                variations.add(withDash);
+                variations.add(withDash.toLowerCase());
+            }
+
+            const namesToCheck = Array.from(variations);
+
+            for (const name of namesToCheck) {
+                for (const ext of extensions) {
+                    const localPath = `/images/${name}.${ext}`;
+                    if (await checkLocalImage(localPath)) {
+                        console.log("Yerel görsel bulundu ve kullanılıyor:", localPath);
+                        yemekGorselElementi.src = localPath;
+                        yemekGorselElementi.style.display = 'block';
+                        hiddenInput.value = localPath;
+                        return; // Yerel görsel bulundu, API aramasına gerek yok
+                    }
+                }
+            }
+
+            // 1. ÖZEL SÖZLÜK: Yöresel yemeklerin en iyi sonuç verdiği İngilizce terimler
+            const ozelSozluk = {
+                "lahmacun": "turkish pizza lahmacun",
+                "mantı": "turkish ravioli manti",
+                "içli köfte": "kibbeh appetizer",
+                "baklava": "turkish baklava dessert",
+                "kuru fasulye": "turkish white bean stew",
+                "iskender": "iskender kebab",
+                "çiğ köfte": "turkish cig kofte",
+                "sarma": "stuffed grape leaves",
+                "künefe": "kunafa dessert",
+                "pide": "turkish pide bread"
+            };
+
+            try {
+                let aramaTerimi = "";
+                const temizIsim = turkceYemekAdi.toLowerCase().trim();
+
+                // 2. ADIM: Arama Terimini Belirle
+                if (ozelSozluk[temizIsim]) {
+                    // Eğer yemek sözlüğümüzde varsa direkt oradaki terimi kullan
+                    aramaTerimi = ozelSozluk[temizIsim];
+                    console.log("Sözlük kullanıldı: " + aramaTerimi);
+                } else {
+                    // Sözlükte yoksa MyMemory API ile çeviri yap
+                    console.log("Çeviri yapılıyor...");
+                    const translateRes = await fetch(
+                        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(turkceYemekAdi)}&langpair=tr|en`
+                    );
+                    const translateData = await translateRes.json();
+                    // Çevirinin yanına 'turkish food' ekleyerek hedefi daralt
+                    aramaTerimi = translateData.responseData.translatedText + " turkish food";
+                    console.log("API Çevirisi: " + aramaTerimi);
+                }
+
+                // 3. ADIM: Unsplash API ile Görsel Ara
+                // "food photography" ekleyerek daha profesyonel yemek resimleri gelmesini sağlıyoruz
+                const unsplashRes = await fetch(
+                    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(aramaTerimi + " food photography")}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=5`
+                );
+                const unsplashData = await unsplashRes.json();
+
+                // 4. ADIM: Sonucu Ekrana Bas
+                if (unsplashData.results && unsplashData.results.length > 0) {
+                    // Bulunan 5 resimden rastgele birini seç
+                    const randomIndex = Math.floor(Math.random() * unsplashData.results.length);
+                    const gorselUrl = unsplashData.results[randomIndex].urls.regular;
+
+                    console.log("Görsel bulundu:", gorselUrl);
+
+                    // Arayüzü güncelle
+                    yemekGorselElementi.src = gorselUrl;
+                    yemekGorselElementi.style.display = 'block';
+                    hiddenInput.value = gorselUrl;
+                } else {
+                    console.warn("Uygun bir görsel bulunamadı.");
+                    yemekGorselElementi.style.display = 'none';
+                    hiddenInput.value = '';
+                }
+
+            } catch (error) {
+                console.error("Bir hata oluştu:", error);
+                // Hata durumunda resmi gizle
+                if (yemekGorselElementi) yemekGorselElementi.style.display = 'none';
+            }
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const tumuCheck = document.getElementById('tumuCheck');
+        const hazirCheck = document.getElementById('hazirCheck');
+        const yakindaCheck = document.getElementById('yakindaCheck');
+        const cards = document.querySelectorAll('.card');
+
+        // Sayfa yüklendiğinde, daha önce silinmiş (localStorage'da kayıtlı) kartları kaldır
+        const deletedFoods = JSON.parse(localStorage.getItem('deletedFoods') || '[]');
+        cards.forEach(card => {
+            if (deletedFoods.includes(card.dataset.id)) {
+                card.remove();
+                return;
+            }
+        });
+
+        function applyFilters() {
+            const search = searchInput.value.toLowerCase();
+            const showTumu = tumuCheck.checked;
+            const showHazir = hazirCheck.checked;
+            const showYakinda = yakindaCheck.checked;
+            cards.forEach(card => {
+                const matchesSearch = card.dataset.name.toLowerCase().includes(search);
+                if (showTumu) {
+                    card.style.display = matchesSearch ? 'block' : 'none';
+                } else {
+                    const status = card.dataset.status;
+                    const isHazir = status === 'hazir';
+                    const isYakinda = status === 'yakinda';
+                    const matchesStatus = (isHazir && showHazir) || (isYakinda && showYakinda);
+                    card.style.display = (matchesSearch && matchesStatus) ? 'block' : 'none';
+                }
+            });
+        }
+
+        tumuCheck.addEventListener('change', () => {
+            if (tumuCheck.checked) { hazirCheck.checked = false; yakindaCheck.checked = false; }
+            applyFilters();
+        });
+        [hazirCheck, yakindaCheck].forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.checked) tumuCheck.checked = false;
+                if (!hazirCheck.checked && !yakindaCheck.checked) tumuCheck.checked = true;
+                applyFilters();
+            });
+        });
+
+        searchInput.addEventListener('input', applyFilters);
+
+        async function handleTalep(event, form) {
+            event.preventDefault();
+            const btn = form.querySelector('button');
+            const originalText = btn.innerText;
+
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.innerText = 'İşleniyor...';
+
+            try {
+                const formData = new FormData(form);
+                
+                // Server isteği
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json' 
+                    },
+                    body: new URLSearchParams(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        openSuccessModal("Talebiniz Gönderildi", "Talebiniz başarıyla alınmıştır. Bildirimlerinizi kontrol edebilirsiniz.");
+                        // Başarılı ise sayfayı yenile veya butonu güncelle
+                        btn.innerText = 'Talep İletildi';
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        alert('Hata: ' + (result.message || 'Bilinmeyen hata'));
+                    }
+                } else {
+                    // Sunucu hata döndürdü (500, 404 vb.)
+                    try {
+                        const errorResult = await response.json();
+                        alert('Sunucu Hatası: ' + (errorResult.message || response.statusText));
+                    } catch (e) {
+                         alert('Sunucu Hatası: ' + response.statusText);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Bağlantı hatası: ' + err.message);
+            } finally {
+                if(btn.innerText !== 'Talep İletildi') {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            }
+        }
+
+        // Success Modal Logic
+        function openSuccessModal(title, message) {
+            const modal = document.getElementById('successModal');
+            document.getElementById('successModalTitle').innerText = title;
+            document.getElementById('successModalMessage').innerText = message;
+            
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth; 
+            
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-90');
+            modal.querySelector('div').classList.add('scale-100');
+            
+            // Flex display is handled by removing hidden which defaults to default display, 
+            // but we need it to be flex for centering. 
+            // The class 'flex' is missing in 'hidden', so we toggle:
+            modal.style.display = 'flex';
+        }
+
+        function closeSuccessModal() {
+             const modal = document.getElementById('successModal');
+             modal.classList.add('opacity-0');
+             modal.querySelector('div').classList.remove('scale-100');
+             modal.querySelector('div').classList.add('scale-90');
+             
+             setTimeout(() => {
+                 modal.classList.add('hidden');
+                 modal.style.display = 'none';
+             }, 300);
+        }
+
+        function onTalep(btn) {
+            btn.disabled = true;
+            btn.innerText = 'Talep gönderildi';
+            setTimeout(() => { btn.disabled = false; btn.innerText = 'Talep Et' }, 2000);
+        }
+
+        function onDetay(btn) {
+            const card = btn.closest('.card');
+            document.getElementById('modalImage').src = card.querySelector('img').src;
+            document.getElementById('modalYemek').innerText = card.dataset.name;
+            document.getElementById('modalMiktar').innerText = card.dataset.miktar;
+            document.getElementById('modalZaman').innerText = card.dataset.zaman;
+            document.getElementById('modalAciklama').innerText = card.querySelector('.desc').textContent;
+            document.getElementById('modalLokasyon').innerText = card.dataset.lokasyon;
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+        function updateLokasyonHidden() {
+            const il = document.getElementById('il').value.trim();
+            const ilce = document.getElementById('ilce').value.trim();
+            const sokak = document.getElementById('sokak').value.trim();
+            const mahalle = document.getElementById('mahalle').value.trim();
+
+            if (il && ilce && sokak && mahalle) {
+                const fullLocation = il + ', ' + ilce + ', ' + mahalle + ', ' + sokak;
+                document.getElementById('lokasyonHidden').value = fullLocation;
+            }
+        }
+
+        document.getElementById('sokak').addEventListener('change', updateLokasyonHidden);
+        document.getElementById('mahalle').addEventListener('change', updateLokasyonHidden);
+
+        // URL'den foodId kontrolü ve otomatik modal açma
+        window.addEventListener('load', () => {
+             const urlParams = new URLSearchParams(window.location.search);
+             const foodId = urlParams.get('foodId');
+             if (foodId) {
+                 const card = document.querySelector(`.card[data-id="${foodId}"]`);
+                 if (card) {
+                     const detailBtn = card.querySelector('button[onclick*="onDetay"]');
+                     if (detailBtn) {
+                         detailBtn.click();
+                         // İsteğe bağlı: karta scroll yap
+                         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                     }
+                 }
+             }
+        });
+
+        // Kayıtlı Konumlar Mantığı
+        const savedLocSelect = document.getElementById('savedLocations');
+        const saveLocCheck = document.getElementById('saveLocationCheck');
+        const locTitleInput = document.getElementById('locationTitleInput');
+
+        if (savedLocSelect) {
+            savedLocSelect.addEventListener('change', function () {
+                const val = this.value;
+                if (val) {
+                    try {
+                        const loc = JSON.parse(val);
+                        document.getElementById('il').value = loc.il || '';
+                        document.getElementById('ilce').value = loc.ilce || '';
+                        document.getElementById('mahalle').value = loc.mahalle || '';
+                        document.getElementById('sokak').value = loc.sokak || '';
+                        updateLokasyonHidden();
+                        // Kayıtlı seçildiyse kaydetme seçeneğini gizle
+                        if (saveLocCheck) {
+                            saveLocCheck.checked = false;
+                            saveLocCheck.parentElement.style.display = 'none';
+                            locTitleInput.classList.add('hidden');
+                        }
+                    } catch (e) { console.error(e); }
+                } else {
+                    // Yeni konum seçildiyse kaydetme seçeneğini göster
+                    if (saveLocCheck) saveLocCheck.parentElement.style.display = 'flex';
+                    document.getElementById('il').value = '';
+                    document.getElementById('ilce').value = '';
+                    document.getElementById('mahalle').value = '';
+                    document.getElementById('sokak').value = '';
+                    document.getElementById('lokasyonHidden').value = '';
+                }
+            });
+        }
+
+        if (saveLocCheck) {
+            saveLocCheck.addEventListener('change', function () {
+                this.checked ? locTitleInput.classList.remove('hidden') : locTitleInput.classList.add('hidden');
+                locTitleInput.required = this.checked;
+            });
+        }
+
+        document.getElementById('haritaBtnForm').addEventListener('click', function (e) {
+            e.preventDefault();
+            openLocationMap();
+        });
+
+        function openLocationMap() {
+            const modal = document.createElement('div');
+            modal.className = 'map-modal';
+
+            const mapContent = document.createElement('div');
+            mapContent.className = 'map-modal-content';
+
+            const header = document.createElement('div');
+            header.className = 'map-modal-header';
+            header.textContent = 'Konumunuzu Seçiniz';
+
+            const mapBox = document.createElement('div');
+            mapBox.id = 'mapBox';
+
+            const footer = document.createElement('div');
+            footer.className = 'map-modal-footer';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'map-confirm-btn';
+            confirmBtn.textContent = '✓ Konumu Onayla';
+            confirmBtn.addEventListener('click', confirmLocationFromMap);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'map-close-btn';
+            closeBtn.textContent = '✕ Kapat';
+            closeBtn.addEventListener('click', () => modal.remove());
+
+            footer.appendChild(confirmBtn);
+            footer.appendChild(closeBtn);
+
+            mapContent.appendChild(header);
+            mapContent.appendChild(mapBox);
+            mapContent.appendChild(footer);
+            modal.appendChild(mapContent);
+            document.body.appendChild(modal);
+
+            const turkeyCenter = { lat: 41.0082, lng: 28.9784 };
+            map = new google.maps.Map(document.getElementById('mapBox'), {
+                zoom: 10,
+                center: turkeyCenter,
+                mapTypeControl: true,
+                fullscreenControl: false
+            });
+
+            map.addListener('click', function (event) {
+                selectedLocation = { lat: event.latLng.lat(), lng: event.latLng.lng() };
+
+                if (marker) marker.setMap(null);
+                marker = new google.maps.Marker({
+                    position: selectedLocation,
+                    map: map,
+                    title: 'Seçili Konum'
+                });
+
+                getAddressFromCoordinates(selectedLocation.lat, selectedLocation.lng);
+            });
+        }
+
+        function getAddressFromCoordinates(lat, lng) {
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ location: { lat: lat, lng: lng } }, function (results, status) {
+                if (status === 'OK' && results && results[0]) {
+                    const addressComponents = results[0].address_components;
+                    const formattedAddress = results[0].formatted_address;
+                    let il = '', ilce = '', sokak = '', mahalle = '';
+
+                    addressComponents.forEach(function (component) {
+                        const types = component.types;
+                        if (types.includes('administrative_area_level_1')) {
+                            il = component.long_name;
+                        }
+                        if (types.includes('administrative_area_level_2')) {
+                            ilce = component.long_name;
+                        }
+                        if (types.includes('route')) {
+                            sokak = component.long_name;
+                        }
+
+                        // Geliştirilmiş Mahalle Yakalaması
+                        if (types.includes('neighborhood') ||
+                            types.includes('sublocality_level_1') ||
+                            types.includes('administrative_area_level_4')) {
+                            mahalle = component.long_name;
+                        }
+                    });
+
+                    // Eğer mahalle hala boşsa, daha spesifik bir arama yap
+                    if (!mahalle) {
+                        const subLocality = addressComponents.find(c => c.types.includes('sublocality'));
+                        if (subLocality) mahalle = subLocality.long_name;
+                    }
+
+                    // Lokasyon bilgisini gizli alana ve inputlara yaz
+                    const fullLocation = (il || 'Tanımlanmamış') + ', ' + (ilce || 'Tanımlanmamış') + ', ' + (mahalle || 'Tanımlanmamış') + ', ' + (sokak || 'Tanımlanmamış');
+                    document.getElementById('lokasyonHidden').value = fullLocation;
+
+                    document.getElementById('il').value = il || '';
+                    document.getElementById('ilce').value = ilce || '';
+                    document.getElementById('sokak').value = sokak || '';
+                    document.getElementById('mahalle').value = mahalle || '';
+
+                    // Haritadan seçilince combobox'ı sıfırla ve kaydetme seçeneğini aç
+                    if (savedLocSelect) savedLocSelect.value = "";
+                    if (saveLocCheck) saveLocCheck.parentElement.style.display = 'flex';
+
+                    console.log('Mahalle tespit edildi:', mahalle);
+                } else {
+                    console.error('Geocoding hatası:', status);
+                }
+            });
+        }
+
+        function confirmLocationFromMap() {
+            if (!selectedLocation) {
+                alert('Lütfen harita üzerinde bir konum seçiniz.');
+                return;
+            }
+            getAddressFromCoordinates(selectedLocation.lat, selectedLocation.lng);
+            const modal = document.querySelector('.map-modal');
+            if (modal) {
+                setTimeout(function () {
+                    modal.remove();
+                }, 500);
+            }
+        }
+
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const lokasyonHidden = document.getElementById('lokasyonHidden').value.trim();
+            const yemekAdi = document.getElementById('yemekAdi').value.trim();
+            const miktar = document.getElementById('miktar').value.trim();
+            const zaman = document.getElementById('zaman').value;
+            const aciklama = document.getElementById('aciklama').value.trim();
+
+            // Owner bilgisi artık backend'de session'dan alınıyor, burada gerek yok
+
+            // 1. Boş Alan Kontrolü
+            if (!yemekAdi || !miktar || !zaman || !aciklama) {
+                e.preventDefault();
+                alert('Lütfen tüm alanları doldurunuz.');
+                return false;
+            }
+
+            // 2. Tarih Kontrolü (Geçmiş Tarih Engelleme)
+            const selectedDate = new Date(zaman);
+            const now = new Date();
+            if (selectedDate < now) {
+                e.preventDefault();
+                alert('Son tüketim tarihi geçmiş bir zaman olamaz. Lütfen ileri bir tarih seçiniz.');
+                return false;
+            }
+
+            // 3. Lokasyon Kontrolü
+            if (!lokasyonHidden) {
+                e.preventDefault();
+                alert('Lütfen harita aracılığıyla bir lokasyon seçiniz.');
+                return false;
+            }
+
+            // Konumu backend'e kaydet
+            const saveLocCheck = document.getElementById('saveLocationCheck');
+            const locTitleInput = document.getElementById('locationTitleInput');
+
+            if (saveLocCheck && saveLocCheck.checked && locTitleInput.value) {
+                const newLoc = {
+                    baslik: locTitleInput.value.trim(),
+                    il: document.getElementById('il').value.trim(),
+                    ilce: document.getElementById('ilce').value.trim(),
+                    mahalle: document.getElementById('mahalle').value.trim(),
+                    sokak: document.getElementById('sokak').value.trim()
+                };
+
+                // API'ye kaydet
+                fetch('/api/locations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newLoc)
+                }).then(res => res.json())
+                    .then(data => console.log('Konum kaydedildi:', data))
+                    .catch(err => console.error('Konum kaydetme hatası:', err));
+            }
+        });
+
+        document.getElementById('yemekAdi').addEventListener('blur', () => {
+            const yemekAdi = document.getElementById('yemekAdi').value.trim();
+            if (yemekAdi) {
+                yemekEkleVeGorselBul(yemekAdi);
+            }
+        });
+
+        // Sayfa yüklendiğinde sayaçları localStorage ile senkronize et
+        document.querySelectorAll('.countdown-timer').forEach(el => {
+            const card = el.closest('.card');
+            if (!card) return;
+            const foodId = card.dataset.id;
+            const storageKey = 'timer_end_' + foodId;
+
+            let endTime = localStorage.getItem(storageKey);
+            let seconds = parseInt(el.dataset.seconds);
+
+            if (!endTime) {
+                endTime = Date.now() + (seconds * 1000);
+                localStorage.setItem(storageKey, endTime);
+            } else {
+                const remaining = Math.ceil((parseInt(endTime) - Date.now()) / 1000);
+                seconds = remaining > 0 ? remaining : 0;
+                el.dataset.seconds = seconds;
+            }
+
+            if (seconds > 0) {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                const display = el.querySelector('.time-display');
+                if (display) display.innerText = `${m}dk ${s}sn`;
+            }
+        });
+
+        // Geri Sayım Sayacı Mantığı
+        setInterval(() => {
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                let seconds = parseInt(el.dataset.seconds);
+
+                if (seconds > 0) {
+                    seconds--;
+                    el.dataset.seconds = seconds;
+
+                    const m = Math.floor(seconds / 60);
+                    const s = seconds % 60;
+                    el.querySelector('.time-display').innerText = `${m}dk ${s}sn`;
+                } else {
+                    // Süre dolduğunda
+
+                    const card = el.closest('.card');
+                    if (card) {
+                        const desc = card.querySelector('.desc');
+                        if (desc) desc.innerText = 'Yemeği Alabilirsiniz';
+                        card.setAttribute('data-status', 'hazir');
+                    }
+
+                    // Kart üzerindeki "Yakında" etiketini "Hazır" olarak güncelle
+                    const parent = el.parentElement;
+                    const badge = parent.querySelector('span.bg-yellow-500');
+                    if (badge) {
+                        badge.innerText = 'Hazır';
+                        badge.classList.remove('bg-yellow-500');
+                        badge.classList.add('bg-red-500');
+                    }
+                    el.remove();
+                }
+            });
+        }, 1000);
+
+        // Başka bir sekmede (yemek_listesi.ejs) yemek alındığında porsiyon miktarını güncelle
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'food_update_signal') {
+                const signal = JSON.parse(e.newValue);
+                if (signal && signal.id) {
+                    const card = document.querySelector(`.card[data-id="${signal.id}"]`);
+                    if (card) {
+                        let currentMiktarStr = card.dataset.miktar;
+                        const match = currentMiktarStr.match(/(\d+)/);
+                        if (match) {
+                            let val = parseInt(match[1]);
+                            if (val > 0) {
+                                val--;
+                                const newMiktarStr = currentMiktarStr.replace(/\d+/, val);
+                                card.dataset.miktar = newMiktarStr;
+
+                                // Modal açıksa güncelle
+                                const modalMiktar = document.getElementById('modalMiktar');
+                                const modalYemek = document.getElementById('modalYemek');
+                                if (document.getElementById('detailModal').style.display !== 'none' && modalYemek.innerText === card.dataset.name) {
+                                    modalMiktar.innerText = newMiktarStr;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // URL'de foodId varsa otomatik olarak o yemeğin detayını aç
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const foodId = urlParams.get('foodId');
+            if (foodId) {
+                const card = document.querySelector(`.card[data-id="${foodId}"]`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById('modalImage').src = card.querySelector('img').src;
+                    document.getElementById('modalYemek').innerText = card.dataset.name;
+                    document.getElementById('modalMiktar').innerText = card.dataset.miktar;
+                    document.getElementById('modalZaman').innerText = card.dataset.zaman;
+                    document.getElementById('modalAciklama').innerText = card.querySelector('.desc').textContent;
+                    document.getElementById('modalLokasyon').innerText = card.dataset.lokasyon;
+                    document.getElementById('detailModal').style.display = 'flex';
+                }
+            }
+        });
+        // Kayıtlı konumlar zaten server'dan geldi (savedLocations değişkeni)
+        // Ek bir şey yapmaya gerek yok
+
+        // Kullanıcı bilgisi HTML'de gösteriliyor, JavaScript'e gerek yok
+        // Kartlar zaten backend'de filtrelenmiş, burada bir şey yapmaya gerek yok
+        
+        function handleLogout() {
+            // İkonu spinner yap
+            const btn = document.querySelector('a[onclick="handleLogout()"]');
+            if(btn) {
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Çıkış Yapılıyor...';
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+
+            // Çıkış yaparken bekletip localStorage temizle
+            setTimeout(() => {
+                // Kritik verileri temizle
+                localStorage.removeItem('currentUserEmail');
+                localStorage.removeItem('foodClaims');
+                localStorage.removeItem('notificationCount');
+                localStorage.removeItem('notifications');
+                localStorage.removeItem('foodReviews');
+                
+                // Diğer geçici verileri temizle ama theme gibi tercihleri tut
+                // localStorage.clear(); // Hepsini silmek istersen bunu aç
+                
+                // Backend logout'a yönlendir
+                window.location.href = '/logout';
+            }, 500);
+        }
+    </script>
+</body>
+
+</html>

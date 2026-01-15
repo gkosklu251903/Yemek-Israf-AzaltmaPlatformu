@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesajlar - Yemek İsrafını Azaltan Web Platformu</title>
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.06);
+  --max-width: 1100px;
+}
+
+*{box-sizing: border-box}
+body {
+  margin: 0;
+  background-color: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+  background-size: cover;
+  text-align: center;
+  padding-bottom: 80px;
+}
+
+.orange-button {
+  background-color: #1f487e;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-size: 32px;
+  margin-top: 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+  pointer-events: none;
+}
+
+.container{
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 30px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+.card{
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  padding: 25px;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+}
+
+.card-body{ display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; }
+.title-row{ display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.message-name{ font-size: 18px; font-weight: 700; }
+.message-email{ font-size: 14px; opacity: 0.9; }
+
+.meta-row{ display: flex; gap: 12px; align-items: center; font-size: 13px; color: #f1f1f1; opacity: 0.95; margin-top: 6px; }
+.meta-item{ display: flex; gap: 6px; align-items: center; background: rgba(255,255,255,0.02); padding: 6px 8px; border-radius: 8px; }
+
+.badge{ display: inline-block; padding: 8px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; color: white; background: linear-gradient(45deg, #ff6b6b, #feca57); }
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<button class="orange-button">Gelen Mesajlar</button>
+
+<main class="container" id="messageContainer">
+<% messages.forEach(message => { %>
+  <article class="card">
+    <div class="card-body">
+      <div class="title-row">
+        <div>
+          <div class="message-name"><%= message.name %></div>
+          <div class="message-email"><%= message.email %></div>
+        </div>
+        <div><span class="badge">
+          <% if (message.subject === 'genel') { %>Genel Bilgi<% } else if (message.subject === 'isletme') { %>İşletme Kaydı<% } else if (message.subject === 'gonullu') { %>Gönüllü Olmak<% } else if (message.subject === 'destek') { %>Teknik Destek<% } else { %><%= message.subject %><% } %>
+        </span></div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item">📅 <%= new Date(message.created_at).toLocaleString('tr-TR') %></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="margin-top: 15px; font-size: 15px; line-height: 1.5; color: #e0e0e0; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #ff6b6b;">
+        <%= message.message %>
+      </div>
+    </div>
+  </article>
+<% }); %>
+</main>
+
+<footer>
+  © 2025 Yemek İsrafını Azaltan Web Platformu | Telif Hakkı
+</footer>
+
+</body>
+</html>
